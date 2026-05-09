@@ -1,36 +1,171 @@
-/* Modal Overlay */
-.modal-overlay {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: rgba(0, 0, 0, 0.8);
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=JetBrains+Mono&display=swap');
+
+:root {
+    --neon-blue: #00d2ff;
+    --neon-green: #00ff87;
+    --bg-dark: #080c14;
+    --glass: rgba(255, 255, 255, 0.03);
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg-dark);
+    color: #e2e8f0;
+    font-family: 'Orbitron', sans-serif;
+    height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
-    opacity: 0;
-    visibility: hidden;
-    transition: 0.3s;
-    z-index: 2000;
+    overflow: hidden;
+    background: radial-gradient(circle at center, #111d35 0%, #080c14 100%);
 }
 
-.modal-overlay.active {
-    opacity: 1;
-    visibility: visible;
+/* Dashboard Container */
+.dashboard {
+    width: 90%;
+    max-width: 850px;
+    padding: 60px 40px;
+    background: var(--glass);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 30px;
+    text-align: center;
+    box-shadow: 0 0 50px rgba(0, 0, 0, 0.6);
 }
 
-/* Modal Content Box */
-.modal-content {
-    width: 450px;
-    background: rgba(15, 23, 42, 0.9);
-    padding: 25px;
+/* Branding */
+.logo-area {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.neon-text {
+    font-size: 2rem;
+    color: var(--neon-blue);
+    text-shadow: 0 0 10px var(--neon-blue);
+}
+
+.branding-name {
+    font-size: 1.2rem;
+    letter-spacing: 3px;
+    font-weight: bold;
+}
+
+.tag { color: var(--neon-blue); font-size: 0.8rem; }
+
+h1 { font-size: 2.2rem; margin: 0; }
+.v2 { color: var(--neon-blue); }
+
+/* Pipeline Logic */
+.pipeline-status {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    margin: 60px 0;
+}
+
+.node {
+    width: 100px;
+    height: 100px;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid #333;
     border-radius: 20px;
-    border: 1px solid rgba(0, 210, 255, 0.3);
-    transform: scale(0.8);
-    transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    transition: 0.4s;
 }
 
-.modal-overlay.active .modal-content {
-    transform: scale(1);
+.node i { font-size: 1.8rem; margin-bottom: 10px; }
+.node span { font-size: 0.6rem; color: #777; text-transform: uppercase; }
+
+.node.active {
+    border-color: var(--neon-blue);
+    color: var(--neon-blue);
+    box-shadow: 0 0 20px rgba(0, 210, 255, 0.3);
+}
+
+.connector {
+    width: 60px;
+    height: 2px;
+    background: #333;
+}
+
+.connector.active { background: var(--neon-blue); box-shadow: 0 0 10px var(--neon-blue); }
+.connector.pulse {
+    background: linear-gradient(90deg, var(--neon-blue), transparent);
+    animation: flow 1.5s infinite linear;
+}
+
+@keyframes flow {
+    0% { opacity: 0.2; }
+    50% { opacity: 1; }
+    100% { opacity: 0.2; }
+}
+
+/* Buttons */
+.footer { display: flex; gap: 20px; justify-content: center; }
+
+.btn {
+    padding: 14px 28px;
+    border-radius: 12px;
+    font-family: 'Orbitron';
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+    text-transform: uppercase;
+}
+
+.btn-primary {
+    background: transparent;
+    border: 2px solid var(--neon-blue);
+    color: var(--neon-blue);
+}
+
+.btn-primary:hover {
+    background: var(--neon-blue);
+    color: #000;
+    box-shadow: 0 0 25px var(--neon-blue);
+}
+
+.btn-secondary {
+    background: transparent;
+    border: 1px solid #444;
+    color: #666;
+}
+
+/* Modal Styling */
+.modal-backdrop {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.9);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-backdrop.show { display: flex; }
+
+.modal-window {
+    width: 450px;
+    background: #0d1117;
+    padding: 30px;
+    border-radius: 25px;
+    border: 1px solid var(--neon-blue);
+    animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes popIn {
+    from { transform: scale(0.8); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
 }
 
 .modal-header {
@@ -40,35 +175,15 @@
     margin-bottom: 20px;
 }
 
-/* Timeline Items */
-.update-item {
-    display: flex;
-    gap: 15px;
-    margin-bottom: 20px;
-    padding-bottom: 15px;
-    border-bottom: 1px solid rgba(255,255,255,0.05);
+.close-btn { background: none; border: none; color: white; font-size: 2rem; cursor: pointer; }
+
+.history-item {
+    background: rgba(255,255,255,0.03);
+    padding: 15px;
+    border-radius: 12px;
+    margin-bottom: 15px;
 }
 
-.update-marker {
-    width: 12px; height: 12px;
-    border-radius: 50%;
-    margin-top: 5px;
-}
-
-.update-marker.success { background: #00ff87; box-shadow: 0 0 8px #00ff87; }
-.update-marker.error { background: #ff5f56; box-shadow: 0 0 8px #ff5f56; }
-
-.update-text strong { display: block; font-size: 0.9rem; color: #00d2ff; }
-.update-text p { font-size: 0.8rem; color: #ccc; margin: 5px 0; }
-.update-text .date { font-size: 0.7rem; color: #666; font-family: 'JetBrains Mono'; }
-
-/* Secondary Button Style */
-.btn-outline {
-    background: transparent;
-    border: 1px solid rgba(255,255,255,0.2);
-    color: white;
-    padding: 10px 20px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-family: 'Orbitron';
-}
+.version { color: var(--neon-green); font-size: 0.9rem; font-weight: bold; }
+.history-item p { font-size: 0.8rem; margin: 8px 0; color: #ccc; font-family: 'JetBrains Mono'; }
+.history-item small { color: #555; font-size: 0.7rem; }

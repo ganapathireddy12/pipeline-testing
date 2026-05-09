@@ -1,48 +1,91 @@
-<div class="footer" style="display: flex; gap: 20px; justify-content: center">
-  <button class="btn-glow" onclick="openUpdates()">PREVIOUS UPDATES</button>
-  <button class="btn-outline">RE-RUN PIPELINE</button>
-</div>
-
-<div id="updatesModal" class="modal-overlay">
-  <div class="modal-content glass">
-    <div class="modal-header">
-      <h3><i class="fas fa-history"></i> Build History</h3>
-      <button class="close-btn" onclick="closeUpdates()">&times;</button>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ganapathi | Pro DevOps Dashboard</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="particles">
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
     </div>
-    <div class="modal-body">
-      <div class="update-item">
-        <div class="update-marker success"></div>
-        <div class="update-text">
-          <strong>v2.1.0 - UI Enhancement</strong>
-          <p>Added glassmorphism and neon animations.</p>
-          <span class="date">May 09, 14:20</span>
+
+    <div class="dashboard glass">
+      <div class="header">
+        <div class="logo-area">
+          <i class="fas fa-microchip neon-text"></i>
+          <span class="branding-name"
+            >GANAPATHI <span class="tag">DEVOPS</span></span
+          >
+        </div>
+        <h1>Automated Pipeline <span class="v2">v3.0</span></h1>
+      </div>
+
+      <div class="pipeline-status">
+        <div class="node active">
+          <i class="fas fa-code"></i>
+          <span>Source</span>
+        </div>
+        <div class="connector active"></div>
+        <div class="node active">
+          <i class="fas fa-box"></i>
+          <span>Build</span>
+        </div>
+        <div class="connector pulse"></div>
+        <div class="node">
+          <i class="fas fa-rocket"></i>
+          <span>Deploy</span>
         </div>
       </div>
-      <div class="update-item">
-        <div class="update-marker success"></div>
-        <div class="update-text">
-          <strong>v2.0.4 - Docker Push</strong>
-          <p>Image optimized and pushed to registry.</p>
-          <span class="date">May 08, 11:45</span>
-        </div>
+
+      <div class="footer">
+        <button class="btn btn-primary" onclick="openModal()">
+          PREVIOUS UPDATES
+        </button>
+        <button class="btn btn-secondary">RE-RUN PIPELINE</button>
       </div>
-      <div class="update-item">
-        <div class="update-marker error"></div>
-        <div class="update-text">
-          <strong>v2.0.3 - Bug Fix</strong>
-          <p>Fixed Java 21 compatibility issues.</p>
-          <span class="date">May 07, 09:10</span>
+    </div>
+
+    <div id="updateModal" class="modal-backdrop">
+      <div class="modal-window">
+        <div class="modal-header">
+          <h2><i class="fas fa-history"></i> Release Notes</h2>
+          <button class="close-btn" onclick="closeModal()">&times;</button>
+        </div>
+        <div class="modal-content">
+          <div class="history-item">
+            <span class="version">v3.0.1</span>
+            <p>Fixed CSS file separation and alignment issues.</p>
+            <small>Today, 15:00</small>
+          </div>
+          <div class="history-item">
+            <span class="version">v3.0.0</span>
+            <p>Introduced Glassmorphism and Neon UI architecture.</p>
+            <small>Yesterday</small>
+          </div>
         </div>
       </div>
     </div>
-  </div>
-</div>
 
-<script>
-  function openUpdates() {
-    document.getElementById("updatesModal").classList.add("active");
-  }
-  function closeUpdates() {
-    document.getElementById("updatesModal").classList.remove("active");
-  }
-</script>
+    <script>
+      function openModal() {
+        document.getElementById("updateModal").classList.add("show");
+      }
+      function closeModal() {
+        document.getElementById("updateModal").classList.remove("show");
+      }
+      // Close modal when clicking outside
+      window.onclick = function (event) {
+        if (event.target == document.getElementById("updateModal"))
+          closeModal();
+      };
+    </script>
+  </body>
+</html>
