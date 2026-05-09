@@ -3,80 +3,80 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>DevOps Pro CI/CD Dashboard</title>
+    <title>Ganapathi | Ultra DevOps Dashboard</title>
     <link rel="stylesheet" href="style.css" />
     <link
       rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
     />
   </head>
   <body>
-    <div class="branding-bar">
-      <span class="logo-circle"><i class="fas fa-satellite-dish"></i></span>
-      <span class="logo-text"
-        >GANAPATHI <span class="ops-tag">| DevOps</span></span
-      >
+    <div class="particles">
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
     </div>
 
-    <div class="container glass">
-      <header class="pipeline-header">
-        <div class="status-indicator">
-          <span class="dot pulse-green"></span>
-          <span class="status-text">PIPELINE ACTIVE</span>
-        </div>
-        <h1>CI/CD Automation Suite</h1>
-        <p>Live Monitoring and Execution View</p>
-      </header>
+    <div class="branding">
+      <div class="logo-icon"><i class="fas fa-microchip"></i></div>
+      <div class="text">
+        <span class="name">GANAPATHI</span>
+        <span class="sub">SYSTEM ARCHITECT</span>
+      </div>
+    </div>
 
-      <div class="pipeline-visualization">
-        <div class="pipe-lane code-lane active">
-          <div class="lane-icon"><i class="fas fa-code"></i></div>
-          <div class="lane-info">
-            <h4>Source</h4>
-            <p>Code Commit</p>
-          </div>
-        </div>
+    <main class="dashboard glass">
+      <div class="header">
+        <div class="badge neon-blue">NODE: EC2-INSTANCE-PRO</div>
+        <h1>Automated Pipeline <span class="v2">v2.0</span></h1>
+      </div>
 
-        <div class="connector-line pulse-arrow">
-          <i class="fas fa-arrow-right"></i>
+      <div class="pipeline-grid">
+        <div class="node active">
+          <i class="fas fa-code-branch"></i>
+          <span>Fetch</span>
         </div>
-
-        <div class="pipe-lane build-lane running">
-          <div class="lane-icon"><i class="fas fa-box-open"></i></div>
-          <div class="lane-info">
-            <h4>Build</h4>
-            <p>Docker Image</p>
-          </div>
+        <div class="wire active"></div>
+        <div class="node loading">
+          <i class="fas fa-layer-group"></i>
+          <span>Build</span>
         </div>
-
-        <div class="connector-line pulse-arrow">
-          <i class="fas fa-arrow-right"></i>
+        <div class="wire"></div>
+        <div class="node success">
+          <i class="fas fa-shield-halved"></i>
+          <span>Security</span>
         </div>
-
-        <div class="pipe-lane test-lane pending">
-          <div class="lane-icon"><i class="fas fa-vial"></i></div>
-          <div class="lane-info">
-            <h4>Test</h4>
-            <p>QA Suites</p>
-          </div>
-        </div>
-
-        <div class="connector-line pulse-arrow">
-          <i class="fas fa-arrow-right"></i>
-        </div>
-
-        <div class="pipe-lane deploy-lane success-bounce">
-          <div class="lane-icon"><i class="fas fa-cloud-upload-alt"></i></div>
-          <div class="lane-info">
-            <h4>Deploy</h4>
-            <p>K8s Cluster</p>
-          </div>
+        <div class="wire"></div>
+        <div class="node">
+          <i class="fas fa-rocket"></i>
+          <span>Deploy</span>
         </div>
       </div>
 
-      <button class="status-btn">
-        <i class="fas fa-shield-alt"></i> Production Status: Verified
-      </button>
-    </div>
+      <div class="terminal glass-dark">
+        <div class="terminal-header">
+          <span class="t-dot red"></span><span class="t-dot yellow"></span
+          ><span class="t-dot green"></span>
+          <span class="t-title">jenkins_build_log.sh</span>
+        </div>
+        <div class="terminal-body">
+          <p class="line typed-1">>> Initializing Jenkins Pipeline...</p>
+          <p class="line typed-2">>> Fetching source from GitHub [main]...</p>
+          <p class="line typed-3">
+            >> Docker build: image ganapathi/cicd-app:latest
+          </p>
+          <p class="line typed-4">
+            >> Build Successful. Pushing to Registry...
+          </p>
+          <p class="line blink-cursor">_</p>
+        </div>
+      </div>
+
+      <div class="footer">
+        <button class="btn-glow">RE-RUN PIPELINE</button>
+      </div>
+    </main>
   </body>
 </html>
