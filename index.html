@@ -1,14 +1,57 @@
 <!doctype html>
-<html>
+<html lang="en">
   <head>
-    <title>CI/CD Demo</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DevOps CI/CD Pipeline</title>
     <link rel="stylesheet" href="style.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
   </head>
   <body>
+    <nav class="branding">
+      <span class="logo-text"
+        >GANAPATHI <span class="dev-tag">| DEVOPS</span></span
+      >
+    </nav>
+
     <div class="container">
+      <div class="status-badge">Pipeline Active</div>
       <h1>CI/CD Pipeline Demo</h1>
-      <p>Hello Ganapathi 🚀</p>
-      <button>Deployment Successful</button>
+
+      <div class="pipeline-flow">
+        <div class="step">
+          <i class="fas fa-code"></i>
+          <p>Code</p>
+        </div>
+        <div class="arrow"><i class="fas fa-chevron-right"></i></div>
+        <div class="step">
+          <i class="fas fa-box-open"></i>
+          <p>Build</p>
+        </div>
+        <div class="arrow animate-pulse">
+          <i class="fas fa-chevron-right"></i>
+        </div>
+        <div class="step core">
+          <i class="fas fa-infinity"></i>
+          <p>DevOps</p>
+        </div>
+        <div class="arrow animate-pulse">
+          <i class="fas fa-chevron-right"></i>
+        </div>
+        <div class="step">
+          <i class="fas fa-cloud-upload-alt"></i>
+          <p>Deploy</p>
+        </div>
+      </div>
+
+      <p class="hero-msg">Automation in progress... 🚀</p>
+
+      <button class="success-btn">
+        <i class="fas fa-check-circle"></i> Deployment Successful
+      </button>
     </div>
   </body>
 </html>
