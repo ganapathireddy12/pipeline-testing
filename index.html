@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>DevOps CI/CD Pipeline</title>
+    <title>DevOps Pro CI/CD Dashboard</title>
     <link rel="stylesheet" href="style.css" />
     <link
       rel="stylesheet"
@@ -11,46 +11,71 @@
     />
   </head>
   <body>
-    <nav class="branding">
+    <div class="branding-bar">
+      <span class="logo-circle"><i class="fas fa-satellite-dish"></i></span>
       <span class="logo-text"
-        >GANAPATHI <span class="dev-tag">| DEVOPS</span></span
+        >GANAPATHI <span class="ops-tag">| DevOps</span></span
       >
-    </nav>
+    </div>
 
-    <div class="container">
-      <div class="status-badge">Pipeline Active</div>
-      <h1>CI/CD Pipeline Demo</h1>
+    <div class="container glass">
+      <header class="pipeline-header">
+        <div class="status-indicator">
+          <span class="dot pulse-green"></span>
+          <span class="status-text">PIPELINE ACTIVE</span>
+        </div>
+        <h1>CI/CD Automation Suite</h1>
+        <p>Live Monitoring and Execution View</p>
+      </header>
 
-      <div class="pipeline-flow">
-        <div class="step">
-          <i class="fas fa-code"></i>
-          <p>Code</p>
+      <div class="pipeline-visualization">
+        <div class="pipe-lane code-lane active">
+          <div class="lane-icon"><i class="fas fa-code"></i></div>
+          <div class="lane-info">
+            <h4>Source</h4>
+            <p>Code Commit</p>
+          </div>
         </div>
-        <div class="arrow"><i class="fas fa-chevron-right"></i></div>
-        <div class="step">
-          <i class="fas fa-box-open"></i>
-          <p>Build</p>
+
+        <div class="connector-line pulse-arrow">
+          <i class="fas fa-arrow-right"></i>
         </div>
-        <div class="arrow animate-pulse">
-          <i class="fas fa-chevron-right"></i>
+
+        <div class="pipe-lane build-lane running">
+          <div class="lane-icon"><i class="fas fa-box-open"></i></div>
+          <div class="lane-info">
+            <h4>Build</h4>
+            <p>Docker Image</p>
+          </div>
         </div>
-        <div class="step core">
-          <i class="fas fa-infinity"></i>
-          <p>DevOps</p>
+
+        <div class="connector-line pulse-arrow">
+          <i class="fas fa-arrow-right"></i>
         </div>
-        <div class="arrow animate-pulse">
-          <i class="fas fa-chevron-right"></i>
+
+        <div class="pipe-lane test-lane pending">
+          <div class="lane-icon"><i class="fas fa-vial"></i></div>
+          <div class="lane-info">
+            <h4>Test</h4>
+            <p>QA Suites</p>
+          </div>
         </div>
-        <div class="step">
-          <i class="fas fa-cloud-upload-alt"></i>
-          <p>Deploy</p>
+
+        <div class="connector-line pulse-arrow">
+          <i class="fas fa-arrow-right"></i>
+        </div>
+
+        <div class="pipe-lane deploy-lane success-bounce">
+          <div class="lane-icon"><i class="fas fa-cloud-upload-alt"></i></div>
+          <div class="lane-info">
+            <h4>Deploy</h4>
+            <p>K8s Cluster</p>
+          </div>
         </div>
       </div>
 
-      <p class="hero-msg">Automation in progress... 🚀</p>
-
-      <button class="success-btn">
-        <i class="fas fa-check-circle"></i> Deployment Successful
+      <button class="status-btn">
+        <i class="fas fa-shield-alt"></i> Production Status: Verified
       </button>
     </div>
   </body>
