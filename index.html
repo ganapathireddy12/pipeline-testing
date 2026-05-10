@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Ganapathi | Pro DevOps Dashboard</title>
+    <title>Ganapathi | Ultra DevOps Dashboard</title>
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
@@ -11,65 +11,76 @@
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <div class="particles">
-      <div class="dot"></div>
-      <div class="dot"></div>
-      <div class="dot"></div>
-    </div>
-
-    <div class="dashboard glass">
+    <div class="dashboard">
       <div class="header">
         <div class="logo-area">
-          <i class="fas fa-microchip neon-text"></i>
+          <i class="fas fa-satellite-dish neon-text"></i>
           <span class="branding-name"
-            >GANAPATHI <span class="tag">DEVOPS</span></span
+            >GANAPATHI <span class="tag">OPS-CENTER</span></span
           >
         </div>
-        <h1>Automated Pipeline <span class="v2">v3.0</span></h1>
+        <h1>System Intelligence <span class="v2">v4.0</span></h1>
       </div>
 
       <div class="pipeline-status">
         <div class="node active">
-          <i class="fas fa-code"></i>
+          <i class="fas fa-code-merge"></i>
           <span>Source</span>
         </div>
         <div class="connector active"></div>
         <div class="node active">
-          <i class="fas fa-box"></i>
+          <i class="fas fa-microchip"></i>
           <span>Build</span>
         </div>
-        <div class="connector pulse"></div>
+        <div class="connector active"></div>
+        <div class="node active">
+          <i class="fas fa-shield-virus"></i>
+          <span>Test</span>
+        </div>
+        <div class="connector active pulse"></div>
         <div class="node">
-          <i class="fas fa-rocket"></i>
+          <i class="fas fa-cloud-arrow-up"></i>
           <span>Deploy</span>
+        </div>
+      </div>
+
+      <div class="terminal-window">
+        <div class="terminal-line">
+          >> [SYSTEM] Initializing secure handshake...
+        </div>
+        <div class="terminal-line" style="color: #64748b">
+          >> [DOCKER] Pulling base image: openjdk:21-slim
+        </div>
+        <div class="terminal-line">
+          >> [SUCCESS] Artifact compiled: Ganapathi_App.jar
         </div>
       </div>
 
       <div class="footer">
         <button class="btn btn-primary" onclick="openModal()">
-          PREVIOUS UPDATES
+          VIEW PIPELINE LOGS
         </button>
-        <button class="btn btn-secondary">RE-RUN PIPELINE</button>
+        <button class="btn btn-secondary">
+          <i class="fas fa-sync-alt"></i> RE-RUN
+        </button>
       </div>
     </div>
 
     <div id="updateModal" class="modal-backdrop">
       <div class="modal-window">
         <div class="modal-header">
-          <h2><i class="fas fa-history"></i> Release Notes</h2>
+          <h2><i class="fas fa-terminal"></i> Build Artifacts</h2>
           <button class="close-btn" onclick="closeModal()">&times;</button>
         </div>
-        <div class="modal-content">
-          <div class="history-item">
-            <span class="version">v3.0.1</span>
-            <p>Fixed CSS file separation and alignment issues.</p>
-            <small>Today, 15:00</small>
-          </div>
-          <div class="history-item">
-            <span class="version">v3.0.0</span>
-            <p>Introduced Glassmorphism and Neon UI architecture.</p>
-            <small>Yesterday</small>
-          </div>
+        <div class="modal-content" style="text-align: left; padding: 20px">
+          <p style="color: var(--neon-blue)">Status: All Systems Green</p>
+          <hr style="border: 0.5px solid #1e293b" />
+          <p style="font-family: &quot;JetBrains Mono&quot;; font-size: 0.8rem">
+            Deployment Target: AWS-EC2-ASG
+          </p>
+          <p style="font-family: &quot;JetBrains Mono&quot;; font-size: 0.8rem">
+            Build Duration: 4m 32s
+          </p>
         </div>
       </div>
     </div>
@@ -81,7 +92,6 @@
       function closeModal() {
         document.getElementById("updateModal").classList.remove("show");
       }
-      // Close modal when clicking outside
       window.onclick = function (event) {
         if (event.target == document.getElementById("updateModal"))
           closeModal();
