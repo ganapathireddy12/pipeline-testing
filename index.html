@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Ganapathi | Neural Ops Dashboard</title>
+    <title>Ganapathi | Black Hole Mode</title>
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
@@ -11,107 +11,56 @@
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <div class="bg-overlay"></div>
+    <div class="black-hole-bg"></div>
+    <div class="ring"></div>
 
     <div class="dashboard">
-      <div class="metrics-bar">
-        <span>SESSION: 0x94AB...714</span>
-        <span id="liveClock">00:00:00</span>
-        <span style="color: var(--neon-pink)">CPU: 14%</span>
-      </div>
-
       <div class="header">
-        <h1 class="branding-name glitch-text">
-          GANAPATHI <span class="v2">V5.0</span>
-        </h1>
-        <p style="color: #64748b; font-size: 0.8rem; letter-spacing: 4px">
-          NEURAL CI/CD PIPELINE ARCHITECTURE
+        <h1 class="branding-name">GANAPATHI</h1>
+        <p
+          style="
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 0.6rem;
+            letter-spacing: 8px;
+            margin-top: 20px;
+          "
+        >
+          VOID ARCHITECTURE // ZERO GRAVITY CI/CD
         </p>
       </div>
 
       <div class="pipeline-status">
         <div class="node active">
-          <i class="fas fa-brain"></i>
-          <span>ANALYZE</span>
+          <i class="fas fa-atom"></i>
         </div>
-        <div class="connector active"></div>
         <div class="node active">
-          <i class="fas fa-cubes"></i>
-          <span>CONTAINER</span>
+          <i class="fas fa-dna"></i>
         </div>
-        <div class="connector active"></div>
         <div class="node active">
-          <i class="fas fa-shield-heart"></i>
-          <span>HARDEN</span>
+          <i class="fas fa-microchip"></i>
         </div>
-        <div class="connector active"></div>
         <div class="node">
-          <i class="fas fa-satellite-dish"></i>
-          <span>BROADCAST</span>
+          <i class="fas fa-infinity"></i>
         </div>
       </div>
 
-      <div class="log-monitor">
-        <div class="log-line">
-          <span>[10:36:01]</span> >> ANALYZING SOURCE CODE TOPOLOGY...
-        </div>
-        <div class="log-line">
-          <span>[10:36:04]</span> >> DOCKER IMAGE BUILD SUCCESSFUL (LAYER CACHE
-          USED)
-        </div>
-        <div class="log-line" style="color: var(--neon-blue)">
-          <span>[10:36:07]</span> >> READY FOR CLOUD BROADCAST...
-        </div>
+      <div class="terminal-void">
+        <p id="voidLog">Pulling artifact into event horizon...</p>
       </div>
 
-      <div class="footer">
-        <button class="btn btn-primary" onclick="openModal()">
-          EXECUTE DEPLOYMENT
-        </button>
-      </div>
-    </div>
-
-    <div id="updateModal" class="modal-backdrop">
-      <div
-        class="modal-window"
-        style="
-          background: #020617;
-          border: 1px solid var(--neon-blue);
-          padding: 40px;
-          border-radius: 30px;
-        "
-      >
-        <h2 style="color: var(--neon-blue)">DATA OVERRIDE</h2>
-        <p style="font-family: &quot;JetBrains Mono&quot;; font-size: 0.8rem">
-          Build 420.7z verified. No vulnerabilities detected in OpenJDK-21
-          image.
-        </p>
-        <button
-          onclick="closeModal()"
-          class="btn btn-primary"
-          style="margin-top: 20px; padding: 10px 20px"
-        >
-          ACKNOWLEDGE
+      <div class="footer" style="margin-top: 50px">
+        <button class="btn-singularity" onclick="spaghettify()">
+          COLLAPSE DATA
         </button>
       </div>
     </div>
 
     <script>
-      // Live Clock Script
-      function updateTime() {
-        const now = new Date();
-        document.getElementById("liveClock").innerText =
-          now.toLocaleTimeString();
-      }
-      setInterval(updateTime, 1000);
-      updateTime();
-
-      // Modal Logic
-      function openModal() {
-        document.getElementById("updateModal").classList.add("show");
-      }
-      function closeModal() {
-        document.getElementById("updateModal").classList.remove("show");
+      function spaghettify() {
+        const node = document.querySelector(".terminal-void p");
+        node.innerText = "DATA COMPRESSED TO INFINITE DENSITY.";
+        node.style.color = "white";
+        node.style.textShadow = "0 0 20px white";
       }
     </script>
   </body>
