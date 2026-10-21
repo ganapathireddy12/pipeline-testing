@@ -5,6 +5,7 @@
   --cyan: #00f2fe;
   --red: #ff3366;
   --yellow: #ffbd2e;
+  --panel-bg: rgba(8, 14, 25, 0.92);
 }
 
 * {
@@ -15,7 +16,7 @@
 }
 
 body {
-  background: #04070d;
+  background: #020408;
   font-family: 'JetBrains Mono', monospace;
   color: #fff;
   height: 100vh;
@@ -24,145 +25,306 @@ body {
   position: relative;
 }
 
-#matrixCanvas { position: absolute; inset: 0; z-index: 1; }
-#gameCanvas { position: absolute; inset: 0; z-index: 2; cursor: crosshair; }
-
-/* Top Neon HUD */
-.hud-bar {
+#matrixCanvas {
   position: absolute;
-  top: 16px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  gap: 20px;
-  background: rgba(6, 12, 22, 0.9);
-  border: 1px solid rgba(0, 242, 254, 0.3);
-  padding: 10px 28px;
-  border-radius: 40px;
-  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.8), 0 0 20px rgba(0, 242, 254, 0.2);
-  backdrop-filter: blur(12px);
-  z-index: 10;
+  inset: 0;
+  z-index: 1;
 }
 
-.hud-item {
+/* War Room Enclosure */
+.war-room {
+  position: relative;
+  z-index: 10;
+  width: 95%;
+  max-width: 1200px;
+  height: 92vh;
+  margin: 4vh auto;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  gap: 14px;
 }
 
-.hud-item .tag {
-  font-size: 0.58rem;
-  letter-spacing: 2px;
-  color: rgba(255, 255, 255, 0.5);
-}
-
-.hud-item .val {
-  font-size: 1.05rem;
-  font-weight: 800;
-}
-
-.cyan { color: var(--cyan); text-shadow: 0 0 10px var(--cyan); }
-.green { color: var(--green); text-shadow: 0 0 10px var(--green); }
-.yellow { color: var(--yellow); text-shadow: 0 0 10px var(--yellow); }
-.red { color: var(--red); text-shadow: 0 0 10px var(--red); }
-
-/* Boss Incursion HUD */
-.boss-hud {
-  position: absolute;
-  top: 80px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 90%;
-  max-width: 650px;
-  background: rgba(20, 0, 8, 0.85);
-  border: 1px solid var(--red);
-  border-radius: 8px;
-  padding: 8px 16px;
-  display: none;
-  z-index: 10;
-  box-shadow: 0 0 25px rgba(255, 51, 102, 0.4);
-}
-
-.boss-info {
+/* Top Warning Header */
+.top-bar {
   display: flex;
   justify-content: space-between;
-  font-size: 0.75rem;
-  color: var(--red);
-  font-weight: 700;
-  margin-bottom: 6px;
+  align-items: center;
+  background: var(--panel-bg);
+  border: 1px solid rgba(0, 242, 254, 0.3);
+  padding: 12px 22px;
+  border-radius: 10px;
+  backdrop-filter: blur(14px);
 }
 
-.boss-bar-track {
-  width: 100%;
+.sys-id { font-size: 0.8rem; color: #a5f3fc; }
+.sys-id strong { color: var(--cyan); }
+
+.warning-banner {
+  background: rgba(255, 189, 46, 0.15);
+  border: 1px solid var(--yellow);
+  color: var(--yellow);
+  padding: 4px 14px;
+  border-radius: 20px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.warning-banner.critical {
+  background: rgba(255, 51, 102, 0.25);
+  border-color: var(--red);
+  color: var(--red);
+  animation: pulseAlarm 0.8s infinite alternate;
+}
+
+@keyframes pulseAlarm {
+  0% { transform: scale(0.98); box-shadow: 0 0 10px var(--red); }
+  100% { transform: scale(1.02); box-shadow: 0 0 25px var(--red); }
+}
+
+.score-pill {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--green);
+}
+
+/* Battle Grid Layout */
+.battle-grid {
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  gap: 16px;
+  flex: 1;
+}
+
+/* Left: Hacker Video Surveillance Feed */
+.hacker-feed-panel {
+  background: var(--panel-bg);
+  border: 1px solid rgba(255, 51, 102, 0.35);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 0 30px rgba(255, 51, 102, 0.12);
+}
+
+.feed-header {
+  font-size: 0.68rem;
+  color: var(--red);
+  font-weight: 700;
+  letter-spacing: 1px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.rec-dot {
+  width: 8px;
   height: 8px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 4px;
+  border-radius: 50%;
+  background: var(--red);
+  animation: blink 1s infinite;
+}
+@keyframes blink { 50% { opacity: 0.2; } }
+
+.hacker-visual {
+  position: relative;
+  height: 220px;
+  background: radial-gradient(circle, #200008 0%, #080004 80%);
+  border: 1px solid rgba(255, 51, 102, 0.5);
+  border-radius: 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   overflow: hidden;
 }
 
-.boss-bar-fill {
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, #ffbd2e, var(--red));
-  box-shadow: 0 0 10px var(--red);
-  transition: width 0.2s ease;
+.glitch-face .hacker-img {
+  font-size: 6.5rem;
+  color: var(--red);
+  text-shadow: 0 0 30px var(--red), 0 0 60px rgba(255, 51, 102, 0.6);
+  animation: glitchFace 2.5s infinite;
 }
 
-/* Bottom Weapon & Action Bar */
-.command-bar {
+@keyframes glitchFace {
+  0%, 100% { transform: translate(0, 0); opacity: 0.9; }
+  92% { transform: translate(-3px, 2px); opacity: 1; }
+  94% { transform: translate(3px, -2px); opacity: 0.6; }
+  96% { transform: translate(-2px, -2px); }
+}
+
+.scanlines {
   position: absolute;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  gap: 12px;
-  z-index: 10;
+  inset: 0;
+  background: repeating-linear-gradient(rgba(0,0,0,0) 0, rgba(0,0,0,0) 2px, rgba(255, 0, 0, 0.12) 3px);
+  pointer-events: none;
 }
 
-.wep-btn {
-  background: rgba(8, 16, 28, 0.85);
-  border: 1px solid rgba(0, 242, 254, 0.35);
+.hacker-dialogue-box {
+  margin: 14px 0;
+  background: rgba(0, 0, 0, 0.6);
+  border-left: 3px solid var(--red);
+  padding: 10px 12px;
+  font-size: 0.75rem;
+  color: #ff99aa;
+  line-height: 1.5;
+  min-height: 60px;
+}
+
+.hacker-stats {
+  margin-top: auto;
+  font-size: 0.65rem;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding-top: 10px;
+}
+.red { color: var(--red); }
+.yellow { color: var(--yellow); }
+.green { color: var(--green); }
+
+/* Right: Defense Console & Radar */
+.defense-console {
+  background: var(--panel-bg);
+  border: 1px solid rgba(0, 242, 254, 0.3);
+  border-radius: 12px;
+  padding: 18px 22px;
+  display: flex;
+  flex-direction: column;
+}
+
+.console-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+.health-pct { color: var(--green); }
+
+.health-track {
+  width: 100%;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 14px;
+}
+.health-fill {
+  height: 100%;
+  width: 100%;
+  transition: width 0.3s ease;
+}
+.health-fill.green { background: linear-gradient(90deg, #00f2fe, var(--green)); }
+.health-fill.yellow { background: var(--yellow); }
+.health-fill.red { background: var(--red); box-shadow: 0 0 10px var(--red); }
+
+/* Radar Circle Area */
+.radar-box {
+  position: relative;
+  flex: 1;
+  background: radial-gradient(circle, #081220 0%, #02060d 90%);
+  border: 1px dashed rgba(0, 242, 254, 0.3);
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: crosshair;
+}
+
+.radar-sweep {
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 500px; height: 500px;
+  margin-top: -250px; margin-left: -250px;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, rgba(0, 242, 254, 0.25) 0deg, transparent 60deg);
+  animation: sweep 4s linear infinite;
+  pointer-events: none;
+}
+@keyframes sweep { to { transform: rotate(360deg); } }
+
+.core-node {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 60px; height: 60px;
+  background: rgba(0, 255, 102, 0.15);
+  border: 2px solid var(--green);
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 0 25px rgba(0, 255, 102, 0.35);
+}
+.core-node i { color: var(--green); font-size: 1.1rem; }
+.core-node span { font-size: 0.5rem; margin-top: 2px; }
+
+/* Infiltrating Threat Packets */
+.threat-packet {
+  position: absolute;
+  width: 30px; height: 30px;
+  background: rgba(255, 51, 102, 0.3);
+  border: 1.5px solid var(--red);
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: var(--red);
+  font-size: 0.8rem;
+  box-shadow: 0 0 15px var(--red);
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+.threat-packet:hover {
+  transform: scale(1.2);
+  background: var(--red);
   color: #fff;
-  padding: 10px 18px;
+}
+
+/* Action Deck Buttons */
+.action-deck {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.action-btn {
+  background: rgba(10, 20, 36, 0.85);
+  border: 1px solid rgba(0, 242, 254, 0.3);
+  color: #fff;
+  padding: 10px 12px;
   border-radius: 8px;
   font-family: 'JetBrains Mono', monospace;
-  font-size: 0.72rem;
-  cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 8px;
-  backdrop-filter: blur(10px);
+  gap: 10px;
+  cursor: pointer;
+  text-align: left;
   transition: all 0.2s ease;
 }
+.action-btn i { font-size: 1.2rem; color: var(--cyan); }
+.action-btn strong { display: block; font-size: 0.72rem; }
+.action-btn span { font-size: 0.58rem; color: rgba(255, 255, 255, 0.5); }
 
-.wep-btn.active {
+.action-btn:hover {
   background: rgba(0, 242, 254, 0.2);
   border-color: var(--cyan);
-  box-shadow: 0 0 20px rgba(0, 242, 254, 0.4);
-}
-
-.cmd-pill.ultra {
-  background: rgba(255, 51, 102, 0.2);
-  border: 1px solid var(--red);
-  color: #fff;
-  padding: 10px 22px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.72rem;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  box-shadow: 0 0 20px rgba(255, 51, 102, 0.3);
-}
-
-.cmd-pill.ultra:hover {
-  background: rgba(255, 51, 102, 0.4);
   transform: translateY(-2px);
 }
 
-/* ================= HACKER HIJACK & OVERRIDE ================= */
-.hijack-screen {
+.action-btn.offensive {
+  border-color: rgba(255, 51, 102, 0.4);
+}
+.action-btn.offensive i { color: var(--red); }
+.action-btn.offensive:hover {
+  background: rgba(255, 51, 102, 0.25);
+  border-color: var(--red);
+}
+
+/* ================= FULLSCREEN BLACKOUT HIJACK ================= */
+.full-blackout {
   position: absolute;
   inset: 0;
   background: #000;
@@ -171,162 +333,141 @@ body {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  padding: 30px;
-}
-
-.static-noise {
-  position: absolute;
-  inset: 0;
-  background: repeating-radial-gradient(circle, rgba(255, 0, 0, 0.05) 0, black 1px);
-  opacity: 0.8;
-  pointer-events: none;
-}
-
-.hacker-icon {
-  font-size: 5rem;
-  color: var(--red);
-  text-shadow: 0 0 35px var(--red);
-}
-
-.hacker-terminal {
-  max-width: 700px;
-  background: rgba(15, 0, 5, 0.8);
-  border: 1px solid var(--red);
-  padding: 20px 25px;
-  border-radius: 8px;
-  box-shadow: 0 0 30px rgba(255, 51, 102, 0.4);
-  font-size: 1rem;
-  color: #ff3366;
-  line-height: 1.7;
-  text-align: left;
-  margin: 20px 0;
-}
-
-.override-panel {
-  background: rgba(8, 14, 24, 0.95);
-  border: 1px solid var(--cyan);
-  padding: 18px 24px;
-  border-radius: 10px;
   text-align: center;
+  padding: 20px;
+  animation: glitchBlackout 0.25s infinite alternate;
 }
 
-.override-prompt {
-  font-size: 0.75rem;
-  color: var(--cyan);
-  margin-bottom: 12px;
+@keyframes glitchBlackout {
+  0% { transform: translate(0, 0); }
+  100% { transform: translate(-2px, 2px); }
 }
 
-.cipher-keys {
-  display: flex;
-  justify-content: center;
-  gap: 14px;
+.blackout-skull {
+  font-size: 6.5rem;
+  color: var(--red);
+  text-shadow: 0 0 40px var(--red), 0 0 80px var(--red);
+  margin-bottom: 20px;
+}
+
+.blackout-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 2.2rem;
+  letter-spacing: 4px;
+  color: var(--red);
   margin-bottom: 10px;
 }
 
-.key-box {
-  width: 45px;
-  height: 45px;
-  background: rgba(0, 242, 254, 0.1);
-  border: 1px solid var(--cyan);
+.blackout-msg {
+  font-size: 1.1rem;
+  color: #ff99aa;
+  margin-bottom: 25px;
+}
+
+.decrypt-challenge {
+  background: rgba(20, 0, 5, 0.9);
+  border: 1px solid var(--red);
+  padding: 20px 30px;
+  border-radius: 10px;
+  box-shadow: 0 0 35px rgba(255, 51, 102, 0.4);
+}
+
+.code-display {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--yellow);
+  letter-spacing: 4px;
+  margin: 10px 0 16px;
+}
+
+.cipher-buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-bottom: 14px;
+}
+
+.c-btn {
+  background: rgba(255, 51, 102, 0.2);
+  border: 1px solid var(--red);
   color: #fff;
-  font-family: 'JetBrains Mono', monospace;
   font-size: 1.1rem;
   font-weight: 700;
-  cursor: pointer;
+  padding: 8px 18px;
   border-radius: 6px;
-  transition: all 0.2s;
+  cursor: pointer;
+  font-family: 'JetBrains Mono', monospace;
+}
+.c-btn:hover { background: var(--red); }
+
+.input-progress {
+  font-size: 0.85rem;
+  color: var(--cyan);
 }
 
-.key-box:hover {
-  background: var(--cyan);
-  color: #040810;
-  box-shadow: 0 0 15px var(--cyan);
-}
-
-.cipher-target {
-  font-size: 0.75rem;
-  color: var(--yellow);
-}
-
-.hijack-status {
-  margin-top: 20px;
-  font-size: 0.82rem;
-  color: var(--red);
-  font-weight: 700;
-}
-
-/* Start / Game Over Overlay */
-.overlay {
+/* Start Modal */
+.start-modal {
   position: absolute;
   inset: 0;
-  background: rgba(4, 7, 13, 0.9);
+  background: rgba(2, 4, 8, 0.92);
   backdrop-filter: blur(14px);
+  z-index: 50;
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 50;
 }
 
-.overlay-card {
-  background: rgba(10, 18, 32, 0.95);
+.modal-card {
+  background: var(--panel-bg);
   border: 1px solid rgba(0, 242, 254, 0.4);
-  border-radius: 16px;
+  border-radius: 14px;
   padding: 40px 48px;
-  max-width: 580px;
+  max-width: 620px;
   text-align: center;
-  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.9), 0 0 40px rgba(0, 242, 254, 0.25);
+  box-shadow: 0 0 50px rgba(0, 242, 254, 0.25);
 }
 
-.glitch-text {
+.modal-card h1 {
   font-family: 'Orbitron', sans-serif;
   font-size: 1.8rem;
-  font-weight: 900;
-  letter-spacing: 2px;
-  color: #fff;
-  text-shadow: 0 0 20px var(--cyan);
-  margin-bottom: 12px;
+  color: var(--cyan);
+  margin-bottom: 14px;
 }
 
-.desc {
-  font-size: 0.8rem;
+.modal-card p {
+  font-size: 0.82rem;
   color: rgba(255, 255, 255, 0.75);
   line-height: 1.6;
   margin-bottom: 20px;
 }
 
-.tips-box {
+.rules {
   background: rgba(0, 0, 0, 0.5);
   border: 1px dashed rgba(0, 242, 254, 0.3);
   padding: 14px;
   border-radius: 8px;
+  font-size: 0.75rem;
+  text-align: left;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  font-size: 0.72rem;
-  text-align: left;
   margin-bottom: 24px;
 }
 
-.tips-box i { color: var(--cyan); margin-right: 6px; }
-
-.btn-start {
+.btn-launch {
   background: linear-gradient(135deg, var(--green), #00b894);
-  color: #040810;
+  color: #030810;
   border: none;
   font-family: 'JetBrains Mono', monospace;
+  font-size: 0.88rem;
   font-weight: 800;
-  font-size: 0.85rem;
   padding: 14px 34px;
   border-radius: 8px;
   cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
   box-shadow: 0 0 25px rgba(0, 255, 102, 0.4);
-  transition: all 0.25s ease;
+  transition: all 0.2s ease;
 }
-
-.btn-start:hover {
+.btn-launch:hover {
   transform: translateY(-2px);
-  box-shadow: 0 0 40px rgba(0, 255, 102, 0.7);
+  box-shadow: 0 0 45px rgba(0, 255, 102, 0.7);
 }
