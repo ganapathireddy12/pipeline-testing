@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Ganapathi | Production Operations Hub</title>
+    <title>Ganapathi | SRE Bug Blaster</title>
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
@@ -11,93 +11,246 @@
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <!-- Background Sci-Fi Matrix & Orb -->
-    <div class="grid-overlay"></div>
-    <div class="black-hole-bg"></div>
-    <div class="ring outer-ring"></div>
-    <div class="ring inner-ring"></div>
-
-    <div class="dashboard">
-      <!-- Status Badge -->
-      <div class="badge-status">
-        <span class="live-dot"></span>
-        <span>CI/CD PIPELINE • PRODUCTION ACTIVE</span>
-      </div>
-
-      <!-- Header Branding -->
-      <div class="header">
-        <h1 class="branding-name">GANAPATHI</h1>
-        <p class="tagline">SRE & AUTOMATION CONTROL MATRIX // BUILD v2.4</p>
-      </div>
-
-      <!-- Stage Pipeline Flow -->
-      <div class="pipeline-status">
-        <div class="node active" data-step="SOURCE">
-          <i class="fas fa-code-commit"></i>
-          <span class="node-label">GIT SYNC</span>
+    <div class="game-wrapper">
+      <!-- HUD Bar -->
+      <div class="hud">
+        <div class="hud-item">
+          <span class="label">PILOT</span>
+          <span class="value cyan">GANAPATHI</span>
         </div>
-        <div class="node-connector active"></div>
-
-        <div class="node active" data-step="BUILD">
-          <i class="fas fa-microchip"></i>
-          <span class="node-label">BUILD</span>
+        <div class="hud-item">
+          <span class="label">SCORE</span>
+          <span class="value" id="scoreVal">0000</span>
         </div>
-        <div class="node-connector active"></div>
-
-        <div class="node active" data-step="SECURITY">
-          <i class="fas fa-shield-halved"></i>
-          <span class="node-label">SECURITY</span>
+        <div class="hud-item">
+          <span class="label">SHIELDS</span>
+          <span class="value green" id="shieldVal">100%</span>
         </div>
-        <div class="node-connector active pulse"></div>
-
-        <div class="node active deploy" data-step="PROD">
-          <i class="fas fa-cloud-arrow-up"></i>
-          <span class="node-label">DEPLOY</span>
+        <div class="hud-item">
+          <span class="label">SYSTEM</span>
+          <span class="value status-badge" id="sysStatus">ONLINE</span>
         </div>
       </div>
 
-      <!-- Live Terminal Console -->
-      <div class="terminal-void">
-        <div class="terminal-bar">
-          <span class="dot red"></span>
-          <span class="dot yellow"></span>
-          <span class="dot green"></span>
-          <span class="terminal-title">live-telemetry.sh</span>
-        </div>
-        <div class="terminal-body" id="voidLog">
-          <p class="log-line success">> [SYS_INIT] Webhook received from branch: <strong>main</strong></p>
-          <p class="log-line info">> [STATUS] All health probes passing. Cluster sync 100%.</p>
-        </div>
-      </div>
+      <!-- Canvas Arcade View -->
+      <canvas id="gameCanvas" width="800" height="500"></canvas>
 
-      <!-- Action Trigger -->
-      <div class="footer">
-        <button class="btn-singularity" onclick="runTelemetryCheck()">
-          <i class="fas fa-bolt"></i> RUN TELEMETRY CHECK
+      <!-- Overlay (Game Start / Over) -->
+      <div class="overlay" id="gameOverlay">
+        <h1 class="title">SRE BUG DEFENDER</h1>
+        <p class="subtitle">Shoot production incidents before they breach cluster SLA.</p>
+        <p class="controls-hint">
+          <i class="fas fa-arrows-left-right"></i> Move: <strong>Mouse / Touch</strong> &nbsp;|&nbsp; 
+          <i class="fas fa-crosshairs"></i> Shoot: <strong>Click / Spacebar</strong>
+        </p>
+        <button class="btn-play" onclick="startGame()">
+          <i class="fas fa-play"></i> LAUNCH MISSION
         </button>
       </div>
     </div>
 
     <script>
-      function runTelemetryCheck() {
-        const logBox = document.getElementById("voidLog");
-        const time = new Date().toLocaleTimeString();
-        const latency = Math.floor(Math.random() * 8) + 10;
+      const canvas = document.getElementById("gameCanvas");
+      const ctx = canvas.getContext("2d");
 
-        logBox.innerHTML = `
-          <p class="log-line success">> [${time}] TELEMETRY AUDIT COMPLETE</p>
-          <p class="log-line info">> Cluster Latency: <strong>${latency}ms</strong> (Optimal)</p>
-          <p class="log-line info">> Deployment Health: <strong>Zero Downtime Verified</strong></p>
-          <p class="log-line success">> All Nodes Synced across AWS Edge Regions.</p>
-        `;
+      let gameRunning = false;
+      let score = 0;
+      let shield = 100;
+      let playerX = canvas.width / 2;
+      let lasers = [];
+      let enemies = [];
+      let particles = [];
+      let spawnTimer = 0;
 
-        const btn = document.querySelector(".btn-singularity");
-        btn.innerHTML = `<i class="fas fa-check"></i> TELEMETRY VERIFIED`;
-        btn.classList.add("verified");
-        setTimeout(() => {
-          btn.innerHTML = `<i class="fas fa-bolt"></i> RUN TELEMETRY CHECK`;
-          btn.classList.remove("verified");
-        }, 3000);
+      // Mouse control
+      canvas.addEventListener("mousemove", (e) => {
+        const rect = canvas.getBoundingClientRect();
+        playerX = Math.max(25, Math.min(canvas.width - 25, e.clientX - rect.left));
+      });
+
+      // Shoot on click
+      canvas.addEventListener("mousedown", shoot);
+      window.addEventListener("keydown", (e) => {
+        if (e.code === "Space") {
+          shoot();
+          e.preventDefault();
+        }
+      });
+
+      function shoot() {
+        if (!gameRunning) return;
+        lasers.push({ x: playerX - 12, y: canvas.height - 45 });
+        lasers.push({ x: playerX + 12, y: canvas.height - 45 });
+      }
+
+      function startGame() {
+        document.getElementById("gameOverlay").style.display = "none";
+        document.getElementById("sysStatus").innerText = "COMBAT ACTIVE";
+        document.getElementById("sysStatus").className = "value status-badge active";
+        score = 0;
+        shield = 100;
+        lasers = [];
+        enemies = [];
+        particles = [];
+        gameRunning = true;
+        updateHud();
+        requestAnimationFrame(gameLoop);
+      }
+
+      function updateHud() {
+        document.getElementById("scoreVal").innerText = score.toString().padStart(4, "0");
+        const sVal = document.getElementById("shieldVal");
+        sVal.innerText = `${shield}%`;
+        if (shield <= 30) sVal.className = "value red";
+        else if (shield <= 60) sVal.className = "value yellow";
+        else sVal.className = "value green";
+      }
+
+      function gameOver() {
+        gameRunning = false;
+        const overlay = document.getElementById("gameOverlay");
+        overlay.style.display = "flex";
+        overlay.querySelector(".title").innerText = "CRITICAL OUTAGE";
+        overlay.querySelector(".subtitle").innerHTML = `Cluster overloaded! Final Score: <strong>${score}</strong>`;
+        overlay.querySelector(".btn-play").innerHTML = `<i class="fas fa-rotate-right"></i> RE-DEPLOY CLUSTER`;
+        document.getElementById("sysStatus").innerText = "OFFLINE";
+        document.getElementById("sysStatus").className = "value status-badge offline";
+      }
+
+      function createExplosion(x, y, color) {
+        for (let i = 0; i < 15; i++) {
+          particles.push({
+            x, y,
+            vx: (Math.random() - 0.5) * 6,
+            vy: (Math.random() - 0.5) * 6,
+            life: 25,
+            color
+          });
+        }
+      }
+
+      function gameLoop() {
+        if (!gameRunning) return;
+
+        // Clear canvas with space fade
+        ctx.fillStyle = "rgba(4, 7, 15, 0.4)";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Draw Player Ship (Neon Cyber Arrow)
+        ctx.save();
+        ctx.translate(playerX, canvas.height - 35);
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = "#00f2fe";
+        ctx.fillStyle = "#00f2fe";
+        ctx.beginPath();
+        ctx.moveTo(0, -20);
+        ctx.lineTo(-20, 15);
+        ctx.lineTo(0, 5);
+        ctx.lineTo(20, 15);
+        ctx.closePath();
+        ctx.fill();
+
+        // Engine flame
+        ctx.fillStyle = "#ff0077";
+        ctx.beginPath();
+        ctx.moveTo(-6, 8);
+        ctx.lineTo(0, 18 + Math.random() * 8);
+        ctx.lineTo(6, 8);
+        ctx.fill();
+        ctx.restore();
+
+        // Update Lasers
+        for (let i = lasers.length - 1; i >= 0; i--) {
+          const l = lasers[i];
+          l.y -= 10;
+          ctx.shadowBlur = 10;
+          ctx.shadowColor = "#00ff87";
+          ctx.fillStyle = "#00ff87";
+          ctx.fillRect(l.x - 2, l.y, 4, 14);
+
+          if (l.y < 0) lasers.splice(i, 1);
+        }
+
+        // Spawn Enemies (Bugs / Memory Leaks / Downtime)
+        spawnTimer++;
+        if (spawnTimer % 40 === 0) {
+          const types = [
+            { text: "500 ERROR", color: "#ff3366", hp: 1, speed: 2.2 },
+            { text: "MEMORY LEAK", color: "#ffbd2e", hp: 2, speed: 1.6 },
+            { text: "LATENCY SPIKE", color: "#bd00ff", hp: 1, speed: 2.8 }
+          ];
+          const chosen = types[Math.floor(Math.random() * types.length)];
+          enemies.push({
+            x: Math.random() * (canvas.width - 120) + 60,
+            y: -20,
+            ...chosen
+          });
+        }
+
+        // Update Enemies
+        for (let i = enemies.length - 1; i >= 0; i--) {
+          const en = enemies[i];
+          en.y += en.speed;
+
+          // Render Enemy Pod
+          ctx.shadowBlur = 12;
+          ctx.shadowColor = en.color;
+          ctx.fillStyle = "rgba(10, 15, 30, 0.9)";
+          ctx.strokeStyle = en.color;
+          ctx.lineWidth = 1.5;
+          ctx.strokeRect(en.x - 45, en.y - 12, 90, 24);
+          ctx.fillRect(en.x - 45, en.y - 12, 90, 24);
+
+          ctx.font = "bold 9px 'JetBrains Mono', monospace";
+          ctx.fillStyle = "#ffffff";
+          ctx.textAlign = "center";
+          ctx.fillText(en.text, en.x, en.y + 4);
+
+          // Hit detection with lasers
+          for (let j = lasers.length - 1; j >= 0; j--) {
+            const l = lasers[j];
+            if (l.x > en.x - 45 && l.x < en.x + 45 && l.y > en.y - 12 && l.y < en.y + 12) {
+              en.hp--;
+              lasers.splice(j, 1);
+              createExplosion(l.x, l.y, en.color);
+
+              if (en.hp <= 0) {
+                createExplosion(en.x, en.y, en.color);
+                enemies.splice(i, 1);
+                score += 50;
+                updateHud();
+                break;
+              }
+            }
+          }
+
+          // Breach boundary (Impact Shields)
+          if (en && en.y > canvas.height - 10) {
+            shield -= 20;
+            createExplosion(en.x, canvas.height - 10, "#ff0044");
+            enemies.splice(i, 1);
+            updateHud();
+            if (shield <= 0) {
+              gameOver();
+              return;
+            }
+          }
+        }
+
+        // Render Particles
+        for (let i = particles.length - 1; i >= 0; i--) {
+          const p = particles[i];
+          p.x += p.vx;
+          p.y += p.vy;
+          p.life--;
+          ctx.shadowBlur = 6;
+          ctx.shadowColor = p.color;
+          ctx.fillStyle = p.color;
+          ctx.fillRect(p.x, p.y, 3, 3);
+          if (p.life <= 0) particles.splice(i, 1);
+        }
+
+        requestAnimationFrame(gameLoop);
       }
     </script>
   </body>
