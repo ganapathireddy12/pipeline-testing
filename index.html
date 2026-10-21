@@ -29,8 +29,8 @@
         <span class="hud-val yellow" id="speedEl">1.0x</span>
       </div>
       <div class="hud-box">
-        <span class="hud-tag">MULTIPLIER</span>
-        <span class="hud-val pink" id="comboEl">x1</span>
+        <span class="hud-tag">AUTO-PILOT PHASE</span>
+        <span class="hud-val green" id="ghostEl">OFF</span>
       </div>
       <div class="hud-box">
         <span class="hud-tag">NITRO TANK</span>
@@ -47,6 +47,7 @@
       <button class="t-btn" id="btnLeft"><i class="fas fa-caret-left"></i></button>
       <button class="t-btn fire" id="btnFire"><i class="fas fa-crosshairs"></i></button>
       <button class="t-btn jump" id="btnJump"><i class="fas fa-arrow-up"></i></button>
+      <button class="t-btn ghost" id="btnGhost" title="10s Auto Phase"><i class="fas fa-shield-cat"></i></button>
       <button class="t-btn nitro" id="btnNitro"><i class="fas fa-bolt"></i></button>
       <button class="t-btn" id="btnRight"><i class="fas fa-caret-right"></i></button>
     </div>
@@ -57,14 +58,16 @@
         <div class="scanner-line"></div>
         <h1 class="glitch-title">OVERDRIVE // DEATH HIGHWAY</h1>
         <p class="modal-desc">
-          Shift lanes, **blast firewall barricades with lasers**, jump over mines and hit **Nitro** for warp overdrive.
+          • Speed ramps up automatically every <strong>500 points</strong>.<br />
+          • Collect <strong>[GHOST]</strong> drops or press <strong>[G]</strong> for <strong>10s Auto-Pilot Phase</strong> (obstacles automatic ga cross avuthayi).
         </p>
 
         <div class="key-guide">
           <div class="key-item"><kbd>A</kbd> / <kbd>D</kbd> <span>Steer</span></div>
           <div class="key-item"><kbd>W</kbd> / <kbd>Space</kbd> <span>Jump</span></div>
-          <div class="key-item"><kbd>J</kbd> / <kbd>Click</kbd> <span>Blast Lasers</span></div>
-          <div class="key-item"><kbd>Shift</kbd> <span>Nitro Warp</span></div>
+          <div class="key-item"><kbd>J</kbd> / <kbd>Click</kbd> <span>Blast</span></div>
+          <div class="key-item"><kbd>G</kbd> <span>Auto Phase</span></div>
+          <div class="key-item"><kbd>Shift</kbd> <span>Nitro</span></div>
         </div>
 
         <button class="launch-btn" onclick="startRunner()">
@@ -84,7 +87,7 @@
       window.addEventListener("resize", resize);
       resize();
 
-      // ================= Web Audio API Synthesizer (Mass SFX) =================
+      // ================= Web Audio API Synthesizer =================
       let audioCtx = null;
       function initAudio() {
         if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -131,6 +134,14 @@
           gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
           osc.start(now);
           osc.stop(now + 0.15);
+        } else if (type === "ghost") {
+          osc.type = "triangle";
+          osc.frequency.setValueAtTime(440, now);
+          osc.frequency.exponentialRampToValueAtTime(1200, now + 0.3);
+          gain.gain.setValueAtTime(0.3, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+          osc.start(now);
+          osc.stop(now + 0.3);
         }
       }
 
@@ -138,8 +149,7 @@
       let running = false;
       let score = 0;
       let speed = 9;
-      let combo = 1;
-      let comboCount = 0;
+      let lastSpeedMilestone = 0;
       let laneIndex = 1;
       let playerZ = 0;
       let playerVZ = 0;
@@ -149,8 +159,12 @@
       let isNitro = false;
       let shakeTime = 0;
 
+      // 10-Second Auto-Phase Booster (Ghost Mode)
+      let ghostTimer = 0; // 600 frames = 10 seconds
+
       let obstacles = [];
       let orbs = [];
+      let boosters = [];
       let lasers = [];
       let particles = [];
       let roadOffset = 0;
@@ -199,6 +213,14 @@
         }
       }
 
+      function activateGhostMode() {
+        if (!running) return;
+        initAudio();
+        ghostTimer = 600; // 10 seconds at 60fps
+        playSound("ghost");
+        createExplosion(getLaneX(laneIndex, canvas.height - 52), canvas.height - 52, "#00ffcc", 20);
+      }
+
       // Keyboard Controls
       window.addEventListener("keydown", (e) => {
         if (!running) return;
@@ -211,6 +233,8 @@
           e.preventDefault();
         } else if (e.key === "Shift") {
           isNitro = true;
+        } else if (e.key === "g" || e.key === "G") {
+          activateGhostMode();
         } else if (e.key === "j" || e.key === "J" || e.key === "f" || e.key === "F") {
           shootLaser();
         }
@@ -227,6 +251,8 @@
       document.getElementById("btnRight").addEventListener("click", () => { if (laneIndex < 2) laneIndex++; });
       document.getElementById("btnJump").addEventListener("click", jump);
       document.getElementById("btnFire").addEventListener("click", shootLaser);
+      document.getElementById("btnGhost").addEventListener("click", activateGhostMode);
+
       const nitroBtn = document.getElementById("btnNitro");
       nitroBtn.addEventListener("touchstart", () => isNitro = true);
       nitroBtn.addEventListener("touchend", () => isNitro = false);
@@ -253,12 +279,13 @@
         running = true;
         score = 0;
         speed = 9;
-        combo = 1;
-        comboCount = 0;
+        lastSpeedMilestone = 0;
         laneIndex = 1;
         nitro = 100;
+        ghostTimer = 0;
         obstacles = [];
         orbs = [];
+        boosters = [];
         lasers = [];
         particles = [];
         updateHUD();
@@ -281,8 +308,17 @@
       function updateHUD() {
         document.getElementById("scoreEl").innerText = Math.floor(score).toString().padStart(5, "0");
         document.getElementById("speedEl").innerText = (speed / 7).toFixed(1) + "x";
-        document.getElementById("comboEl").innerText = `x${combo}`;
         document.getElementById("nitroBar").style.width = `${nitro}%`;
+
+        const ghostEl = document.getElementById("ghostEl");
+        if (ghostTimer > 0) {
+          const secs = Math.ceil(ghostTimer / 60);
+          ghostEl.innerText = `${secs}s [AUTO]`;
+          ghostEl.className = "hud-val cyan";
+        } else {
+          ghostEl.innerText = "OFF";
+          ghostEl.className = "hud-val green";
+        }
       }
 
       function spawnTrackEntities() {
@@ -305,6 +341,15 @@
             y: horizonY + 5
           });
         }
+
+        // Ghost Booster Capsule (Drops every now and then)
+        if (Math.random() < 0.007) {
+          boosters.push({
+            lane: Math.floor(Math.random() * 3),
+            y: horizonY + 5,
+            type: "GHOST"
+          });
+        }
       }
 
       function loop() {
@@ -320,8 +365,24 @@
           nitro = Math.min(100, nitro + 0.15);
         }
 
-        score += (curSpeed / 8) * combo;
-        speed = Math.min(22, speed + 0.002);
+        score += (curSpeed / 8);
+
+        // Every 500 Points -> Increment Speed
+        if (Math.floor(score / 500) > lastSpeedMilestone) {
+          lastSpeedMilestone = Math.floor(score / 500);
+          speed += 2.0; // Significant speed jump
+          shakeTime = 12;
+          playSound("coin");
+          const spBadge = document.getElementById("speedEl");
+          spBadge.classList.add("speed-flash");
+          setTimeout(() => spBadge.classList.remove("speed-flash"), 800);
+        }
+
+        // Ghost Mode countdown
+        if (ghostTimer > 0) {
+          ghostTimer--;
+        }
+
         updateHUD();
 
         ctx.save();
@@ -371,7 +432,7 @@
         const bottomWidth = Math.min(canvas.width * 0.88, 1050);
         const topWidth = 50;
 
-        ctx.strokeStyle = isNitro ? "rgba(255, 0, 127, 0.8)" : "rgba(0, 242, 254, 0.5)";
+        ctx.strokeStyle = ghostTimer > 0 ? "rgba(0, 255, 204, 0.8)" : (isNitro ? "rgba(255, 0, 127, 0.8)" : "rgba(0, 242, 254, 0.5)");
         ctx.lineWidth = 2;
 
         // Highway borders
@@ -444,6 +505,41 @@
           if (l.y < horizonY) lasers.splice(i, 1);
         }
 
+        // Booster Drops (Ghost Phase Pod)
+        for (let i = boosters.length - 1; i >= 0; i--) {
+          const b = boosters[i];
+          b.y += curSpeed * 0.85;
+          const x = getLaneX(b.lane, b.y);
+          const scale = (b.y - horizonY) / (canvas.height - horizonY);
+
+          if (scale > 0.05) {
+            ctx.save();
+            ctx.shadowBlur = 18;
+            ctx.shadowColor = "#00ffcc";
+            ctx.fillStyle = "#00ffcc";
+            ctx.beginPath();
+            ctx.arc(x, b.y, Math.max(4, 16 * scale), 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.font = "bold 9px 'Orbitron', sans-serif";
+            ctx.fillStyle = "#03060c";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText("PHASE", x, b.y);
+            ctx.restore();
+          }
+
+          // Player pickup booster
+          if (b.y > canvas.height - 85 && b.y < canvas.height - 10) {
+            if (b.lane === laneIndex) {
+              activateGhostMode();
+              boosters.splice(i, 1);
+              continue;
+            }
+          }
+          if (b.y > canvas.height + 30) boosters.splice(i, 1);
+        }
+
         // Data Orbs
         for (let i = orbs.length - 1; i >= 0; i--) {
           const orb = orbs[i];
@@ -465,10 +561,8 @@
           if (orb.y > canvas.height - 85 && orb.y < canvas.height - 10) {
             if (orb.lane === laneIndex) {
               score += 250;
-              comboCount++;
               nitro = Math.min(100, nitro + 12);
               playSound("coin");
-              if (comboCount % 4 === 0) combo = Math.min(6, combo + 1);
               createExplosion(x, orb.y, "#ffe600", 12);
               orbs.splice(i, 1);
               continue;
@@ -490,6 +584,8 @@
 
             ctx.save();
             ctx.shadowBlur = 20;
+            // When Ghost Mode is active, obstacles appear semi-transparent
+            ctx.globalAlpha = ghostTimer > 0 ? 0.45 : 1.0;
             ctx.shadowColor = obs.hp < obs.maxHp ? "#ffbd2e" : "#ff0055";
             ctx.fillStyle = obs.hp < obs.maxHp ? "rgba(255, 189, 46, 0.9)" : "rgba(255, 0, 85, 0.9)";
             ctx.strokeStyle = "#fff";
@@ -499,11 +595,18 @@
             ctx.restore();
           }
 
+          // Collision Check
           if (obs.y > canvas.height - 80 && obs.y < canvas.height - 20) {
-            if (obs.lane === laneIndex && playerZ < 25) {
-              gameOver();
-              ctx.restore();
-              return;
+            if (obs.lane === laneIndex) {
+              // IF GHOST ACTIVE -> AUTOMATIC GA CROSS AIPOVALI (NO COLLISION!)
+              if (ghostTimer > 0) {
+                // Flash ghost phase feedback
+                createExplosion(x, obs.y, "#00ffcc", 4);
+              } else if (playerZ < 25) {
+                gameOver();
+                ctx.restore();
+                return;
+              }
             }
           }
           if (obs.y > canvas.height + 40) obstacles.splice(i, 1);
@@ -527,16 +630,26 @@
         ctx.save();
         ctx.translate(playerX, playerY);
 
+        // Ghost Mode Translucency & Energy Aura
+        if (ghostTimer > 0) {
+          ctx.globalAlpha = 0.55 + Math.sin(Date.now() / 80) * 0.3;
+          ctx.strokeStyle = "#00ffcc";
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.arc(0, 0, 36, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+
         // Shadow
-        ctx.fillStyle = "rgba(0, 242, 254, 0.3)";
+        ctx.fillStyle = ghostTimer > 0 ? "rgba(0, 255, 204, 0.4)" : "rgba(0, 242, 254, 0.3)";
         ctx.beginPath();
         ctx.ellipse(0, 36 + playerZ, 34, 9, 0, 0, Math.PI * 2);
         ctx.fill();
 
         // Craft Hull
-        ctx.shadowBlur = isNitro ? 35 : 20;
-        ctx.shadowColor = isNitro ? "#ff007f" : "#00f2fe";
-        ctx.fillStyle = isNitro ? "#ff007f" : "#00f2fe";
+        ctx.shadowBlur = ghostTimer > 0 ? 35 : (isNitro ? 35 : 20);
+        ctx.shadowColor = ghostTimer > 0 ? "#00ffcc" : (isNitro ? "#ff007f" : "#00f2fe");
+        ctx.fillStyle = ghostTimer > 0 ? "#00ffcc" : (isNitro ? "#ff007f" : "#00f2fe");
         ctx.beginPath();
         ctx.moveTo(0, -24);
         ctx.lineTo(-28, 18);
