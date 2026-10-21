@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Ganapathi | SRE Bug Blaster</title>
+    <title>Ganapathi | Cyber Synthwave Runner</title>
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
@@ -11,349 +11,374 @@
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <div class="game-wrapper">
-      <!-- HUD Bar -->
-      <div class="hud">
-        <div class="hud-item">
-          <span class="label">PILOT</span>
-          <span class="value cyan">GANAPATHI</span>
-        </div>
-        <div class="hud-item">
-          <span class="label">SCORE</span>
-          <span class="value" id="scoreVal">0000</span>
-        </div>
-        <div class="hud-item">
-          <span class="label">SHIELDS</span>
-          <span class="value green" id="shieldVal">100%</span>
-        </div>
-        <div class="hud-item">
-          <span class="label">ACTIVE BOOSTER</span>
-          <span class="value yellow" id="boosterVal">NONE</span>
-        </div>
-        <div class="hud-item">
-          <span class="label">SYSTEM</span>
-          <span class="value status-badge" id="sysStatus">ONLINE</span>
-        </div>
+    <!-- Fullscreen Canvas -->
+    <canvas id="runnerCanvas"></canvas>
+
+    <!-- Top Neon HUD -->
+    <div class="hud-layer">
+      <div class="hud-box">
+        <span class="hud-tag">OPERATOR</span>
+        <span class="hud-val cyan">GANAPATHI</span>
       </div>
+      <div class="hud-box">
+        <span class="hud-tag">SCORE</span>
+        <span class="hud-val" id="scoreEl">00000</span>
+      </div>
+      <div class="hud-box">
+        <span class="hud-tag">SPEED WARP</span>
+        <span class="hud-val yellow" id="speedEl">1.0x</span>
+      </div>
+      <div class="hud-box">
+        <span class="hud-tag">MULTIPLIER</span>
+        <span class="hud-val pink" id="comboEl">x1</span>
+      </div>
+      <div class="hud-box">
+        <span class="hud-tag">STATUS</span>
+        <span class="hud-val green" id="statusEl">OPTIMAL</span>
+      </div>
+    </div>
 
-      <!-- Canvas Arcade View -->
-      <canvas id="gameCanvas" width="800" height="500"></canvas>
-
-      <!-- Overlay (Game Start / Over) -->
-      <div class="overlay" id="gameOverlay">
-        <h1 class="title">SRE BUG DEFENDER</h1>
-        <p class="subtitle">Collect drops: <strong>Triple Shot [3X]</strong>, <strong>Shield Restore [SHIELD]</strong> & <strong>EMP Nuke [EMP]</strong></p>
-        <p class="controls-hint">
-          <i class="fas fa-arrows-left-right"></i> Move: <strong>Mouse / Touch</strong> &nbsp;|&nbsp; 
-          <i class="fas fa-crosshairs"></i> Shoot: <strong>Click / Spacebar</strong>
+    <!-- Interactive Start / Game Over Modal -->
+    <div class="screen-modal" id="gameModal">
+      <div class="modal-card">
+        <div class="scanner-line"></div>
+        <h1 class="glitch-title">CYBER RUNNER // 2077</h1>
+        <p class="modal-desc">
+          Shift between lanes, dodge firewall nodes, and grab quantum data packets.
         </p>
-        <button class="btn-play" onclick="startGame()">
-          <i class="fas fa-play"></i> LAUNCH MISSION
+
+        <div class="key-guide">
+          <div class="key-item"><kbd>A</kbd> / <kbd>←</kbd> <span>Left</span></div>
+          <div class="key-item"><kbd>D</kbd> / <kbd>→</kbd> <span>Right</span></div>
+          <div class="key-item"><kbd>W</kbd> / <kbd>↑</kbd> / <kbd>Space</kbd> <span>Jump</span></div>
+        </div>
+
+        <button class="launch-btn" onclick="startRunner()">
+          <i class="fas fa-play"></i> ENGAGE ENGINE
         </button>
       </div>
     </div>
 
     <script>
-      const canvas = document.getElementById("gameCanvas");
+      const canvas = document.getElementById("runnerCanvas");
       const ctx = canvas.getContext("2d");
 
-      let gameRunning = false;
+      function resize() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      }
+      window.addEventListener("resize", resize);
+      resize();
+
+      // State variables
+      let running = false;
       let score = 0;
-      let shield = 100;
-      let playerX = canvas.width / 2;
-      let lasers = [];
-      let enemies = [];
-      let particles = [];
-      let powerups = [];
-      let spawnTimer = 0;
+      let speed = 7;
+      let combo = 1;
+      let comboCount = 0;
+      let laneIndex = 1; // 0: Left, 1: Center, 2: Right
+      let playerZ = 0; // Jump offset
+      let playerVZ = 0;
+      let isJumping = false;
 
-      // Booster state
-      let tripleShotTimer = 0;
+      let obstacles = [];
+      let orbs = [];
+      let roadOffset = 0;
+      let stars = [];
 
-      // Controls
-      canvas.addEventListener("mousemove", (e) => {
-        const rect = canvas.getBoundingClientRect();
-        playerX = Math.max(25, Math.min(canvas.width - 25, e.clientX - rect.left));
-      });
+      // Generate Background Starfield
+      for (let i = 0; i < 90; i++) {
+        stars.push({
+          x: Math.random() * window.innerWidth,
+          y: Math.random() * (window.innerHeight * 0.5),
+          size: Math.random() * 2,
+          alpha: Math.random()
+        });
+      }
 
-      canvas.addEventListener("mousedown", shoot);
+      function getLaneX(lane, progressY) {
+        const horizonX = canvas.width / 2;
+        const horizonY = canvas.height * 0.42;
+        const bottomY = canvas.height;
+        const t = (progressY - horizonY) / (bottomY - horizonY);
+
+        const bottomWidth = Math.min(canvas.width * 0.85, 950);
+        const topWidth = 40;
+        const currentWidth = topWidth + (bottomWidth - topWidth) * t;
+
+        const leftEdge = horizonX - currentWidth / 2;
+        const laneWidth = currentWidth / 3;
+        return leftEdge + laneWidth * lane + laneWidth / 2;
+      }
+
+      // Input handlers
       window.addEventListener("keydown", (e) => {
-        if (e.code === "Space") {
-          shoot();
+        if (!running) return;
+        if ((e.key === "ArrowLeft" || e.key === "a" || e.key === "A") && laneIndex > 0) {
+          laneIndex--;
+        } else if ((e.key === "ArrowRight" || e.key === "d" || e.key === "D") && laneIndex < 2) {
+          laneIndex++;
+        } else if ((e.key === "ArrowUp" || e.key === "w" || e.key === "W" || e.key === " ") && !isJumping) {
+          isJumping = true;
+          playerVZ = 13;
           e.preventDefault();
         }
       });
 
-      function shoot() {
-        if (!gameRunning) return;
-        if (tripleShotTimer > 0) {
-          // Triple Shot Booster
-          lasers.push({ x: playerX - 18, y: canvas.height - 45, vx: -1.5 });
-          lasers.push({ x: playerX, y: canvas.height - 50, vx: 0 });
-          lasers.push({ x: playerX + 18, y: canvas.height - 45, vx: 1.5 });
-        } else {
-          // Standard Dual Laser
-          lasers.push({ x: playerX - 12, y: canvas.height - 45, vx: 0 });
-          lasers.push({ x: playerX + 12, y: canvas.height - 45, vx: 0 });
-        }
-      }
-
-      function startGame() {
-        document.getElementById("gameOverlay").style.display = "none";
-        document.getElementById("sysStatus").innerText = "COMBAT ACTIVE";
-        document.getElementById("sysStatus").className = "value status-badge active";
+      function startRunner() {
+        document.getElementById("gameModal").style.display = "none";
+        document.getElementById("statusEl").innerText = "IN-RUN";
+        document.getElementById("statusEl").className = "hud-val green";
+        running = true;
         score = 0;
-        shield = 100;
-        tripleShotTimer = 0;
-        lasers = [];
-        enemies = [];
-        particles = [];
-        powerups = [];
-        gameRunning = true;
-        updateHud();
-        requestAnimationFrame(gameLoop);
-      }
-
-      function updateHud() {
-        document.getElementById("scoreVal").innerText = score.toString().padStart(4, "0");
-        const sVal = document.getElementById("shieldVal");
-        sVal.innerText = `${shield}%`;
-        if (shield <= 30) sVal.className = "value red";
-        else if (shield <= 60) sVal.className = "value yellow";
-        else sVal.className = "value green";
-
-        const bVal = document.getElementById("boosterVal");
-        if (tripleShotTimer > 0) {
-          bVal.innerText = `TRIPLE SHOT (${Math.ceil(tripleShotTimer / 60)}s)`;
-          bVal.className = "value cyan";
-        } else {
-          bVal.innerText = "NONE";
-          bVal.className = "value yellow";
-        }
+        speed = 8;
+        combo = 1;
+        comboCount = 0;
+        laneIndex = 1;
+        obstacles = [];
+        orbs = [];
+        updateHUD();
+        requestAnimationFrame(loop);
       }
 
       function gameOver() {
-        gameRunning = false;
-        const overlay = document.getElementById("gameOverlay");
-        overlay.style.display = "flex";
-        overlay.querySelector(".title").innerText = "CRITICAL OUTAGE";
-        overlay.querySelector(".subtitle").innerHTML = `Cluster overloaded! Final Score: <strong>${score}</strong>`;
-        overlay.querySelector(".btn-play").innerHTML = `<i class="fas fa-rotate-right"></i> RE-DEPLOY CLUSTER`;
-        document.getElementById("sysStatus").innerText = "OFFLINE";
-        document.getElementById("sysStatus").className = "value status-badge offline";
+        running = false;
+        const modal = document.getElementById("gameModal");
+        modal.style.display = "flex";
+        modal.querySelector(".glitch-title").innerText = "SYSTEM CRASHED";
+        modal.querySelector(".modal-desc").innerHTML = `Telemetry terminated. Distance Cleared: <strong>${Math.floor(score)}</strong> pts`;
+        modal.querySelector(".launch-btn").innerHTML = `<i class="fas fa-rotate-right"></i> REBOOT RUN`;
+        document.getElementById("statusEl").innerText = "BREACHED";
+        document.getElementById("statusEl").className = "hud-val red";
       }
 
-      function createExplosion(x, y, color, count = 16) {
-        for (let i = 0; i < count; i++) {
-          particles.push({
-            x, y,
-            vx: (Math.random() - 0.5) * 7,
-            vy: (Math.random() - 0.5) * 7,
-            life: 25,
-            color
+      function updateHUD() {
+        document.getElementById("scoreEl").innerText = Math.floor(score).toString().padStart(5, "0");
+        document.getElementById("speedEl").innerText = (speed / 7).toFixed(1) + "x";
+        document.getElementById("comboEl").innerText = `x${combo}`;
+      }
+
+      function spawnTrackEntities() {
+        const horizonY = canvas.height * 0.42;
+
+        // Obstacles
+        if (Math.random() < 0.035) {
+          obstacles.push({
+            lane: Math.floor(Math.random() * 3),
+            y: horizonY + 5,
+            type: Math.random() > 0.4 ? "BLOCK" : "DRONE"
+          });
+        }
+
+        // Data Orbs
+        if (Math.random() < 0.05) {
+          orbs.push({
+            lane: Math.floor(Math.random() * 3),
+            y: horizonY + 5
           });
         }
       }
 
-      function triggerNuke() {
-        createExplosion(canvas.width / 2, canvas.height / 2, "#00f2fe", 80);
-        enemies.forEach(en => {
-          createExplosion(en.x, en.y, en.color);
-          score += 50;
+      function loop() {
+        if (!running) return;
+
+        score += (speed / 10) * combo;
+        speed = Math.min(18, speed + 0.0015);
+        if (score % 20 < 1) updateHUD();
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Synthwave Background Grid & Sun
+        const horizonY = canvas.height * 0.42;
+        const horizonX = canvas.width / 2;
+
+        // Sky gradient
+        const skyGrad = ctx.createLinearGradient(0, 0, 0, horizonY);
+        skyGrad.addColorStop(0, "#05020a");
+        skyGrad.addColorStop(0.7, "#1a082d");
+        skyGrad.addColorStop(1, "#360e4b");
+        ctx.fillStyle = skyGrad;
+        ctx.fillRect(0, 0, canvas.width, horizonY);
+
+        // Stars
+        ctx.fillStyle = "#fff";
+        stars.forEach(st => {
+          ctx.globalAlpha = st.alpha;
+          ctx.fillRect(st.x, st.y, st.size, st.size);
         });
-        enemies = [];
-        updateHud();
-      }
+        ctx.globalAlpha = 1;
 
-      function gameLoop() {
-        if (!gameRunning) return;
-
-        // Background Motion
-        ctx.fillStyle = "rgba(4, 7, 15, 0.4)";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        // Player Ship Render
+        // Synthwave Sun
         ctx.save();
-        ctx.translate(playerX, canvas.height - 35);
-        ctx.shadowBlur = tripleShotTimer > 0 ? 25 : 15;
-        ctx.shadowColor = tripleShotTimer > 0 ? "#ff00ea" : "#00f2fe";
-        ctx.fillStyle = tripleShotTimer > 0 ? "#ff00ea" : "#00f2fe";
+        const sunRadius = 70;
+        const sunGrad = ctx.createLinearGradient(0, horizonY - sunRadius * 2, 0, horizonY);
+        sunGrad.addColorStop(0, "#ff007f");
+        sunGrad.addColorStop(0.8, "#ffe600");
+        ctx.fillStyle = sunGrad;
         ctx.beginPath();
-        ctx.moveTo(0, -22);
-        ctx.lineTo(-20, 15);
-        ctx.lineTo(0, 5);
-        ctx.lineTo(20, 15);
-        ctx.closePath();
-        ctx.fill();
-
-        // Booster active aura ring
-        if (tripleShotTimer > 0) {
-          ctx.strokeStyle = "rgba(255, 0, 234, 0.6)";
-          ctx.lineWidth = 2;
-          ctx.beginPath();
-          ctx.arc(0, 0, 28, 0, Math.PI * 2);
-          ctx.stroke();
-        }
-
-        // Engine flame
-        ctx.fillStyle = "#ff0077";
-        ctx.beginPath();
-        ctx.moveTo(-6, 8);
-        ctx.lineTo(0, 18 + Math.random() * 8);
-        ctx.lineTo(6, 8);
+        ctx.arc(horizonX, horizonY - 15, sunRadius, Math.PI, 0, false);
         ctx.fill();
         ctx.restore();
 
-        // Triple shot countdown
-        if (tripleShotTimer > 0) {
-          tripleShotTimer--;
-          if (tripleShotTimer % 30 === 0) updateHud();
+        // Ground Floor
+        const groundGrad = ctx.createLinearGradient(0, horizonY, 0, canvas.height);
+        groundGrad.addColorStop(0, "#080614");
+        groundGrad.addColorStop(1, "#020108");
+        ctx.fillStyle = groundGrad;
+        ctx.fillRect(0, horizonY, canvas.width, canvas.height - horizonY);
+
+        // 3D Perspective Grid Highway
+        roadOffset = (roadOffset + speed * 1.4) % 60;
+        const bottomWidth = Math.min(canvas.width * 0.85, 950);
+        const topWidth = 40;
+
+        ctx.strokeStyle = "rgba(0, 242, 254, 0.4)";
+        ctx.lineWidth = 1.5;
+
+        // Highway side borders
+        ctx.beginPath();
+        ctx.moveTo(horizonX - topWidth / 2, horizonY);
+        ctx.lineTo(horizonX - bottomWidth / 2, canvas.height);
+        ctx.moveTo(horizonX + topWidth / 2, horizonY);
+        ctx.lineTo(horizonX + bottomWidth / 2, canvas.height);
+        ctx.stroke();
+
+        // 4 Lane Separators
+        for (let i = 1; i <= 2; i++) {
+          const tTop = i / 3;
+          ctx.beginPath();
+          ctx.moveTo(horizonX - topWidth / 2 + topWidth * tTop, horizonY);
+          ctx.lineTo(horizonX - bottomWidth / 2 + bottomWidth * tTop, canvas.height);
+          ctx.strokeStyle = "rgba(255, 0, 200, 0.25)";
+          ctx.stroke();
         }
 
-        // Lasers Update
-        for (let i = lasers.length - 1; i >= 0; i--) {
-          const l = lasers[i];
-          l.y -= 10;
-          l.x += l.vx || 0;
-          ctx.shadowBlur = 10;
-          ctx.shadowColor = tripleShotTimer > 0 ? "#ff00ea" : "#00ff87";
-          ctx.fillStyle = tripleShotTimer > 0 ? "#ff00ea" : "#00ff87";
-          ctx.fillRect(l.x - 2, l.y, 4, 14);
-
-          if (l.y < 0 || l.x < 0 || l.x > canvas.width) lasers.splice(i, 1);
+        // Horizontal Grid Movement
+        for (let y = horizonY; y < canvas.height; y += 8) {
+          const norm = (y - horizonY) / (canvas.height - horizonY);
+          const drawY = horizonY + Math.pow(norm, 2.3) * (canvas.height - horizonY) + (roadOffset * norm * 0.2);
+          if (drawY <= canvas.height) {
+            ctx.beginPath();
+            ctx.moveTo(0, drawY);
+            ctx.lineTo(canvas.width, drawY);
+            ctx.strokeStyle = `rgba(0, 242, 254, ${0.03 + norm * 0.25})`;
+            ctx.stroke();
+          }
         }
 
-        // Spawn Enemies
-        spawnTimer++;
-        if (spawnTimer % 38 === 0) {
-          const types = [
-            { text: "500 ERROR", color: "#ff3366", hp: 1, speed: 2.2 },
-            { text: "MEMORY LEAK", color: "#ffbd2e", hp: 2, speed: 1.7 },
-            { text: "LATENCY SPIKE", color: "#bd00ff", hp: 1, speed: 2.8 }
-          ];
-          const chosen = types[Math.floor(Math.random() * types.length)];
-          enemies.push({
-            x: Math.random() * (canvas.width - 120) + 60,
-            y: -20,
-            ...chosen
-          });
-        }
+        spawnTrackEntities();
 
-        // Enemies Loop
-        for (let i = enemies.length - 1; i >= 0; i--) {
-          const en = enemies[i];
-          en.y += en.speed;
+        // Update & Render Data Orbs
+        for (let i = orbs.length - 1; i >= 0; i--) {
+          const orb = orbs[i];
+          orb.y += speed * 0.85;
+          const x = getLaneX(orb.lane, orb.y);
+          const scale = (orb.y - horizonY) / (canvas.height - horizonY);
 
-          ctx.shadowBlur = 12;
-          ctx.shadowColor = en.color;
-          ctx.fillStyle = "rgba(10, 15, 30, 0.9)";
-          ctx.strokeStyle = en.color;
-          ctx.lineWidth = 1.5;
-          ctx.strokeRect(en.x - 45, en.y - 12, 90, 24);
-          ctx.fillRect(en.x - 45, en.y - 12, 90, 24);
-
-          ctx.font = "bold 9px 'JetBrains Mono', monospace";
-          ctx.fillStyle = "#ffffff";
-          ctx.textAlign = "center";
-          ctx.fillText(en.text, en.x, en.y + 4);
-
-          // Check laser collisions
-          for (let j = lasers.length - 1; j >= 0; j--) {
-            const l = lasers[j];
-            if (l.x > en.x - 45 && l.x < en.x + 45 && l.y > en.y - 12 && l.y < en.y + 12) {
-              en.hp--;
-              lasers.splice(j, 1);
-              createExplosion(l.x, l.y, en.color, 8);
-
-              if (en.hp <= 0) {
-                createExplosion(en.x, en.y, en.color, 16);
-
-                // 25% Chance to drop a booster capsule
-                if (Math.random() < 0.25) {
-                  const bTypes = [
-                    { type: "TRIPLE", label: "3X", color: "#ff00ea" },
-                    { type: "SHIELD", label: "+50%", color: "#00ff87" },
-                    { type: "NUKE", label: "EMP", color: "#00f2fe" }
-                  ];
-                  const b = bTypes[Math.floor(Math.random() * bTypes.length)];
-                  powerups.push({ x: en.x, y: en.y, ...b });
-                }
-
-                enemies.splice(i, 1);
-                score += 50;
-                updateHud();
-                break;
-              }
-            }
+          if (scale > 0.05) {
+            ctx.save();
+            ctx.shadowBlur = 12;
+            ctx.shadowColor = "#00ff87";
+            ctx.fillStyle = "#00ff87";
+            ctx.beginPath();
+            ctx.arc(x, orb.y, Math.max(3, 13 * scale), 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
           }
 
-          // Screen Bottom Breach
-          if (en && en.y > canvas.height - 10) {
-            shield = Math.max(0, shield - 20);
-            createExplosion(en.x, canvas.height - 10, "#ff0044");
-            enemies.splice(i, 1);
-            updateHud();
-            if (shield <= 0) {
+          // Pickup check
+          if (orb.y > canvas.height - 80 && orb.y < canvas.height - 10) {
+            if (orb.lane === laneIndex) {
+              score += 200;
+              comboCount++;
+              if (comboCount % 5 === 0) combo = Math.min(5, combo + 1);
+              updateHUD();
+              orbs.splice(i, 1);
+              continue;
+            }
+          }
+          if (orb.y > canvas.height + 30) orbs.splice(i, 1);
+        }
+
+        // Update & Render Obstacles
+        for (let i = obstacles.length - 1; i >= 0; i--) {
+          const obs = obstacles[i];
+          obs.y += speed * 0.85;
+          const x = getLaneX(obs.lane, obs.y);
+          const scale = (obs.y - horizonY) / (canvas.height - horizonY);
+
+          if (scale > 0.05) {
+            const width = Math.max(10, 60 * scale);
+            const height = Math.max(8, 45 * scale);
+
+            ctx.save();
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = "#ff0055";
+            ctx.fillStyle = "rgba(255, 0, 85, 0.85)";
+            ctx.strokeStyle = "#fff";
+            ctx.lineWidth = 2 * scale;
+            ctx.fillRect(x - width / 2, obs.y - height, width, height);
+            ctx.strokeRect(x - width / 2, obs.y - height, width, height);
+            ctx.restore();
+          }
+
+          // Collision Check
+          if (obs.y > canvas.height - 75 && obs.y < canvas.height - 20) {
+            if (obs.lane === laneIndex && playerZ < 22) {
               gameOver();
               return;
             }
           }
+          if (obs.y > canvas.height + 40) obstacles.splice(i, 1);
         }
 
-        // Powerups / Boosters Fall & Collect
-        for (let i = powerups.length - 1; i >= 0; i--) {
-          const p = powerups[i];
-          p.y += 2.0;
-
-          // Capsule visual
-          ctx.save();
-          ctx.shadowBlur = 15;
-          ctx.shadowColor = p.color;
-          ctx.fillStyle = p.color;
-          ctx.beginPath();
-          ctx.arc(p.x, p.y, 14, 0, Math.PI * 2);
-          ctx.fill();
-
-          ctx.font = "bold 9px 'Orbitron', sans-serif";
-          ctx.fillStyle = "#03060c";
-          ctx.textAlign = "center";
-          ctx.textBaseline = "middle";
-          ctx.fillText(p.label, p.x, p.y);
-          ctx.restore();
-
-          // Player pickup hit check
-          const dist = Math.hypot(p.x - playerX, p.y - (canvas.height - 35));
-          if (dist < 32) {
-            if (p.type === "TRIPLE") {
-              tripleShotTimer = 480; // ~8 seconds
-            } else if (p.type === "SHIELD") {
-              shield = Math.min(100, shield + 50);
-            } else if (p.type === "NUKE") {
-              triggerNuke();
-            }
-            createExplosion(p.x, p.y, p.color, 20);
-            powerups.splice(i, 1);
-            updateHud();
-            continue;
+        // Player Jump Physics
+        if (isJumping) {
+          playerZ += playerVZ;
+          playerVZ -= 0.8;
+          if (playerZ <= 0) {
+            playerZ = 0;
+            playerVZ = 0;
+            isJumping = false;
           }
-
-          if (p.y > canvas.height) powerups.splice(i, 1);
         }
 
-        // Particle FX
-        for (let i = particles.length - 1; i >= 0; i--) {
-          const pt = particles[i];
-          pt.x += pt.vx;
-          pt.y += pt.vy;
-          pt.life--;
-          ctx.shadowBlur = 6;
-          ctx.shadowColor = pt.color;
-          ctx.fillStyle = pt.color;
-          ctx.fillRect(pt.x, pt.y, 3, 3);
-          if (pt.life <= 0) particles.splice(i, 1);
-        }
+        // Render Player Hovercraft
+        const playerY = canvas.height - 50 - playerZ;
+        const playerX = getLaneX(laneIndex, canvas.height - 50);
 
-        requestAnimationFrame(gameLoop);
+        ctx.save();
+        ctx.translate(playerX, playerY);
+
+        // Shadow below hovercraft
+        ctx.fillStyle = "rgba(0, 242, 254, 0.25)";
+        ctx.beginPath();
+        ctx.ellipse(0, 35 + playerZ, 30, 8, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Neon craft body
+        ctx.shadowBlur = 25;
+        ctx.shadowColor = "#00f2fe";
+        ctx.fillStyle = "#00f2fe";
+        ctx.beginPath();
+        ctx.moveTo(0, -20);
+        ctx.lineTo(-24, 18);
+        ctx.lineTo(0, 10);
+        ctx.lineTo(24, 18);
+        ctx.closePath();
+        ctx.fill();
+
+        // Jet booster trail
+        ctx.fillStyle = "#ff007f";
+        ctx.beginPath();
+        ctx.moveTo(-8, 12);
+        ctx.lineTo(0, 26 + Math.random() * 8);
+        ctx.lineTo(8, 12);
+        ctx.fill();
+
+        ctx.restore();
+
+        requestAnimationFrame(loop);
       }
     </script>
   </body>
