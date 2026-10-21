@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Ganapathi | Cyber Synthwave Runner</title>
+    <title>Ganapathi | Cyber Synthwave Overdrive</title>
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
@@ -17,7 +17,7 @@
     <!-- Top Neon HUD -->
     <div class="hud-layer">
       <div class="hud-box">
-        <span class="hud-tag">OPERATOR</span>
+        <span class="hud-tag">PILOT</span>
         <span class="hud-val cyan">GANAPATHI</span>
       </div>
       <div class="hud-box">
@@ -25,7 +25,7 @@
         <span class="hud-val" id="scoreEl">00000</span>
       </div>
       <div class="hud-box">
-        <span class="hud-tag">SPEED WARP</span>
+        <span class="hud-tag">WARP SPEED</span>
         <span class="hud-val yellow" id="speedEl">1.0x</span>
       </div>
       <div class="hud-box">
@@ -33,28 +33,42 @@
         <span class="hud-val pink" id="comboEl">x1</span>
       </div>
       <div class="hud-box">
+        <span class="hud-tag">NITRO TANK</span>
+        <div class="nitro-bar-wrap"><div class="nitro-fill" id="nitroBar"></div></div>
+      </div>
+      <div class="hud-box">
         <span class="hud-tag">STATUS</span>
-        <span class="hud-val green" id="statusEl">OPTIMAL</span>
+        <span class="hud-val green" id="statusEl">ONLINE</span>
       </div>
     </div>
 
-    <!-- Interactive Start / Game Over Modal -->
+    <!-- Mobile Touch Controls -->
+    <div class="touch-controls">
+      <button class="t-btn" id="btnLeft"><i class="fas fa-caret-left"></i></button>
+      <button class="t-btn fire" id="btnFire"><i class="fas fa-crosshairs"></i></button>
+      <button class="t-btn jump" id="btnJump"><i class="fas fa-arrow-up"></i></button>
+      <button class="t-btn nitro" id="btnNitro"><i class="fas fa-bolt"></i></button>
+      <button class="t-btn" id="btnRight"><i class="fas fa-caret-right"></i></button>
+    </div>
+
+    <!-- Start / Game Over Modal -->
     <div class="screen-modal" id="gameModal">
       <div class="modal-card">
         <div class="scanner-line"></div>
-        <h1 class="glitch-title">CYBER RUNNER // 2077</h1>
+        <h1 class="glitch-title">OVERDRIVE // DEATH HIGHWAY</h1>
         <p class="modal-desc">
-          Shift between lanes, dodge firewall nodes, and grab quantum data packets.
+          Shift lanes, **blast firewall barricades with lasers**, jump over mines and hit **Nitro** for warp overdrive.
         </p>
 
         <div class="key-guide">
-          <div class="key-item"><kbd>A</kbd> / <kbd>←</kbd> <span>Left</span></div>
-          <div class="key-item"><kbd>D</kbd> / <kbd>→</kbd> <span>Right</span></div>
-          <div class="key-item"><kbd>W</kbd> / <kbd>↑</kbd> / <kbd>Space</kbd> <span>Jump</span></div>
+          <div class="key-item"><kbd>A</kbd> / <kbd>D</kbd> <span>Steer</span></div>
+          <div class="key-item"><kbd>W</kbd> / <kbd>Space</kbd> <span>Jump</span></div>
+          <div class="key-item"><kbd>J</kbd> / <kbd>Click</kbd> <span>Blast Lasers</span></div>
+          <div class="key-item"><kbd>Shift</kbd> <span>Nitro Warp</span></div>
         </div>
 
         <button class="launch-btn" onclick="startRunner()">
-          <i class="fas fa-play"></i> ENGAGE ENGINE
+          <i class="fas fa-fire"></i> IGNITE ENGINES
         </button>
       </div>
     </div>
@@ -70,28 +84,83 @@
       window.addEventListener("resize", resize);
       resize();
 
-      // State variables
+      // ================= Web Audio API Synthesizer (Mass SFX) =================
+      let audioCtx = null;
+      function initAudio() {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === "suspended") audioCtx.resume();
+      }
+
+      function playSound(type) {
+        if (!audioCtx) return;
+        const now = audioCtx.currentTime;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        if (type === "laser") {
+          osc.type = "sawtooth";
+          osc.frequency.setValueAtTime(800, now);
+          osc.frequency.exponentialRampToValueAtTime(100, now + 0.12);
+          gain.gain.setValueAtTime(0.25, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
+          osc.start(now);
+          osc.stop(now + 0.12);
+        } else if (type === "explosion") {
+          osc.type = "square";
+          osc.frequency.setValueAtTime(160, now);
+          osc.frequency.exponentialRampToValueAtTime(30, now + 0.35);
+          gain.gain.setValueAtTime(0.4, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+          osc.start(now);
+          osc.stop(now + 0.35);
+        } else if (type === "coin") {
+          osc.type = "sine";
+          osc.frequency.setValueAtTime(587, now);
+          osc.frequency.setValueAtTime(880, now + 0.08);
+          gain.gain.setValueAtTime(0.2, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+          osc.start(now);
+          osc.stop(now + 0.2);
+        } else if (type === "jump") {
+          osc.type = "sine";
+          osc.frequency.setValueAtTime(200, now);
+          osc.frequency.exponentialRampToValueAtTime(600, now + 0.15);
+          gain.gain.setValueAtTime(0.2, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+          osc.start(now);
+          osc.stop(now + 0.15);
+        }
+      }
+
+      // ================= Game State =================
       let running = false;
       let score = 0;
-      let speed = 7;
+      let speed = 9;
       let combo = 1;
       let comboCount = 0;
-      let laneIndex = 1; // 0: Left, 1: Center, 2: Right
-      let playerZ = 0; // Jump offset
+      let laneIndex = 1;
+      let playerZ = 0;
       let playerVZ = 0;
       let isJumping = false;
 
+      let nitro = 100;
+      let isNitro = false;
+      let shakeTime = 0;
+
       let obstacles = [];
       let orbs = [];
+      let lasers = [];
+      let particles = [];
       let roadOffset = 0;
       let stars = [];
 
-      // Generate Background Starfield
-      for (let i = 0; i < 90; i++) {
+      for (let i = 0; i < 110; i++) {
         stars.push({
           x: Math.random() * window.innerWidth,
-          y: Math.random() * (window.innerHeight * 0.5),
-          size: Math.random() * 2,
+          y: Math.random() * (window.innerHeight * 0.45),
+          size: Math.random() * 2.2,
           alpha: Math.random()
         });
       }
@@ -102,8 +171,8 @@
         const bottomY = canvas.height;
         const t = (progressY - horizonY) / (bottomY - horizonY);
 
-        const bottomWidth = Math.min(canvas.width * 0.85, 950);
-        const topWidth = 40;
+        const bottomWidth = Math.min(canvas.width * 0.88, 1050);
+        const topWidth = 50;
         const currentWidth = topWidth + (bottomWidth - topWidth) * t;
 
         const leftEdge = horizonX - currentWidth / 2;
@@ -111,44 +180,101 @@
         return leftEdge + laneWidth * lane + laneWidth / 2;
       }
 
-      // Input handlers
+      function shootLaser() {
+        if (!running) return;
+        initAudio();
+        const startY = canvas.height - 45 - playerZ;
+        const startX = getLaneX(laneIndex, startY);
+        lasers.push({ lane: laneIndex, x: startX - 16, y: startY });
+        lasers.push({ lane: laneIndex, x: startX + 16, y: startY });
+        playSound("laser");
+      }
+
+      function jump() {
+        if (!isJumping && running) {
+          initAudio();
+          isJumping = true;
+          playerVZ = 15;
+          playSound("jump");
+        }
+      }
+
+      // Keyboard Controls
       window.addEventListener("keydown", (e) => {
         if (!running) return;
         if ((e.key === "ArrowLeft" || e.key === "a" || e.key === "A") && laneIndex > 0) {
           laneIndex--;
         } else if ((e.key === "ArrowRight" || e.key === "d" || e.key === "D") && laneIndex < 2) {
           laneIndex++;
-        } else if ((e.key === "ArrowUp" || e.key === "w" || e.key === "W" || e.key === " ") && !isJumping) {
-          isJumping = true;
-          playerVZ = 13;
+        } else if (e.key === "ArrowUp" || e.key === "w" || e.key === "W" || e.key === " ") {
+          jump();
           e.preventDefault();
+        } else if (e.key === "Shift") {
+          isNitro = true;
+        } else if (e.key === "j" || e.key === "J" || e.key === "f" || e.key === "F") {
+          shootLaser();
         }
       });
 
+      window.addEventListener("keyup", (e) => {
+        if (e.key === "Shift") isNitro = false;
+      });
+
+      canvas.addEventListener("mousedown", shootLaser);
+
+      // Mobile Touch Hooks
+      document.getElementById("btnLeft").addEventListener("click", () => { if (laneIndex > 0) laneIndex--; });
+      document.getElementById("btnRight").addEventListener("click", () => { if (laneIndex < 2) laneIndex++; });
+      document.getElementById("btnJump").addEventListener("click", jump);
+      document.getElementById("btnFire").addEventListener("click", shootLaser);
+      const nitroBtn = document.getElementById("btnNitro");
+      nitroBtn.addEventListener("touchstart", () => isNitro = true);
+      nitroBtn.addEventListener("touchend", () => isNitro = false);
+      nitroBtn.addEventListener("mousedown", () => isNitro = true);
+      nitroBtn.addEventListener("mouseup", () => isNitro = false);
+
+      function createExplosion(x, y, color = "#ff0055", count = 22) {
+        for (let i = 0; i < count; i++) {
+          particles.push({
+            x, y,
+            vx: (Math.random() - 0.5) * 12,
+            vy: (Math.random() - 0.5) * 12,
+            life: 30,
+            color
+          });
+        }
+      }
+
       function startRunner() {
+        initAudio();
         document.getElementById("gameModal").style.display = "none";
-        document.getElementById("statusEl").innerText = "IN-RUN";
+        document.getElementById("statusEl").innerText = "WARP ACTIVE";
         document.getElementById("statusEl").className = "hud-val green";
         running = true;
         score = 0;
-        speed = 8;
+        speed = 9;
         combo = 1;
         comboCount = 0;
         laneIndex = 1;
+        nitro = 100;
         obstacles = [];
         orbs = [];
+        lasers = [];
+        particles = [];
         updateHUD();
         requestAnimationFrame(loop);
       }
 
       function gameOver() {
         running = false;
+        shakeTime = 30;
+        playSound("explosion");
         const modal = document.getElementById("gameModal");
         modal.style.display = "flex";
-        modal.querySelector(".glitch-title").innerText = "SYSTEM CRASHED";
+        modal.querySelector(".glitch-title").innerText = "CLUSTER DEMOLISHED";
         modal.querySelector(".modal-desc").innerHTML = `Telemetry terminated. Distance Cleared: <strong>${Math.floor(score)}</strong> pts`;
-        modal.querySelector(".launch-btn").innerHTML = `<i class="fas fa-rotate-right"></i> REBOOT RUN`;
-        document.getElementById("statusEl").innerText = "BREACHED";
+        modal.querySelector(".launch-btn").innerHTML = `<i class="fas fa-rotate-right"></i> RE-IGNITE RUN`;
+        document.getElementById("statusEl").innerText = "CRASHED";
         document.getElementById("statusEl").className = "hud-val red";
       }
 
@@ -156,22 +282,24 @@
         document.getElementById("scoreEl").innerText = Math.floor(score).toString().padStart(5, "0");
         document.getElementById("speedEl").innerText = (speed / 7).toFixed(1) + "x";
         document.getElementById("comboEl").innerText = `x${combo}`;
+        document.getElementById("nitroBar").style.width = `${nitro}%`;
       }
 
       function spawnTrackEntities() {
         const horizonY = canvas.height * 0.42;
 
         // Obstacles
-        if (Math.random() < 0.035) {
+        if (Math.random() < 0.04) {
           obstacles.push({
             lane: Math.floor(Math.random() * 3),
             y: horizonY + 5,
-            type: Math.random() > 0.4 ? "BLOCK" : "DRONE"
+            hp: 2,
+            maxHp: 2
           });
         }
 
         // Data Orbs
-        if (Math.random() < 0.05) {
+        if (Math.random() < 0.055) {
           orbs.push({
             lane: Math.floor(Math.random() * 3),
             y: horizonY + 5
@@ -182,25 +310,41 @@
       function loop() {
         if (!running) return;
 
-        score += (speed / 10) * combo;
-        speed = Math.min(18, speed + 0.0015);
-        if (score % 20 < 1) updateHUD();
+        // Nitro handling
+        let curSpeed = speed;
+        if (isNitro && nitro > 0) {
+          curSpeed *= 1.6;
+          nitro = Math.max(0, nitro - 0.4);
+          shakeTime = Math.max(shakeTime, 2);
+        } else {
+          nitro = Math.min(100, nitro + 0.15);
+        }
+
+        score += (curSpeed / 8) * combo;
+        speed = Math.min(22, speed + 0.002);
+        updateHUD();
+
+        ctx.save();
+        if (shakeTime > 0) {
+          const sX = (Math.random() - 0.5) * shakeTime * 1.5;
+          const sY = (Math.random() - 0.5) * shakeTime * 1.5;
+          ctx.translate(sX, sY);
+          shakeTime--;
+        }
 
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // Synthwave Background Grid & Sun
         const horizonY = canvas.height * 0.42;
         const horizonX = canvas.width / 2;
 
-        // Sky gradient
+        // Sky & Stars
         const skyGrad = ctx.createLinearGradient(0, 0, 0, horizonY);
-        skyGrad.addColorStop(0, "#05020a");
-        skyGrad.addColorStop(0.7, "#1a082d");
-        skyGrad.addColorStop(1, "#360e4b");
+        skyGrad.addColorStop(0, "#030108");
+        skyGrad.addColorStop(0.7, "#17062a");
+        skyGrad.addColorStop(1, "#3c0b53");
         ctx.fillStyle = skyGrad;
         ctx.fillRect(0, 0, canvas.width, horizonY);
 
-        // Stars
         ctx.fillStyle = "#fff";
         stars.forEach(st => {
           ctx.globalAlpha = st.alpha;
@@ -208,34 +352,29 @@
         });
         ctx.globalAlpha = 1;
 
-        // Synthwave Sun
+        // Glowing Synthwave Sun
         ctx.save();
-        const sunRadius = 70;
+        const sunRadius = 80;
         const sunGrad = ctx.createLinearGradient(0, horizonY - sunRadius * 2, 0, horizonY);
         sunGrad.addColorStop(0, "#ff007f");
-        sunGrad.addColorStop(0.8, "#ffe600");
+        sunGrad.addColorStop(0.85, "#ffe600");
         ctx.fillStyle = sunGrad;
+        ctx.shadowBlur = 40;
+        ctx.shadowColor = "#ff007f";
         ctx.beginPath();
-        ctx.arc(horizonX, horizonY - 15, sunRadius, Math.PI, 0, false);
+        ctx.arc(horizonX, horizonY - 10, sunRadius, Math.PI, 0, false);
         ctx.fill();
         ctx.restore();
 
-        // Ground Floor
-        const groundGrad = ctx.createLinearGradient(0, horizonY, 0, canvas.height);
-        groundGrad.addColorStop(0, "#080614");
-        groundGrad.addColorStop(1, "#020108");
-        ctx.fillStyle = groundGrad;
-        ctx.fillRect(0, horizonY, canvas.width, canvas.height - horizonY);
+        // 3D Neon Grid Highway
+        roadOffset = (roadOffset + curSpeed * 1.6) % 60;
+        const bottomWidth = Math.min(canvas.width * 0.88, 1050);
+        const topWidth = 50;
 
-        // 3D Perspective Grid Highway
-        roadOffset = (roadOffset + speed * 1.4) % 60;
-        const bottomWidth = Math.min(canvas.width * 0.85, 950);
-        const topWidth = 40;
+        ctx.strokeStyle = isNitro ? "rgba(255, 0, 127, 0.8)" : "rgba(0, 242, 254, 0.5)";
+        ctx.lineWidth = 2;
 
-        ctx.strokeStyle = "rgba(0, 242, 254, 0.4)";
-        ctx.lineWidth = 1.5;
-
-        // Highway side borders
+        // Highway borders
         ctx.beginPath();
         ctx.moveTo(horizonX - topWidth / 2, horizonY);
         ctx.lineTo(horizonX - bottomWidth / 2, canvas.height);
@@ -243,56 +382,94 @@
         ctx.lineTo(horizonX + bottomWidth / 2, canvas.height);
         ctx.stroke();
 
-        // 4 Lane Separators
+        // Lanes
         for (let i = 1; i <= 2; i++) {
           const tTop = i / 3;
           ctx.beginPath();
           ctx.moveTo(horizonX - topWidth / 2 + topWidth * tTop, horizonY);
           ctx.lineTo(horizonX - bottomWidth / 2 + bottomWidth * tTop, canvas.height);
-          ctx.strokeStyle = "rgba(255, 0, 200, 0.25)";
+          ctx.strokeStyle = "rgba(255, 0, 200, 0.3)";
           ctx.stroke();
         }
 
-        // Horizontal Grid Movement
+        // Horizontal Road Lines
         for (let y = horizonY; y < canvas.height; y += 8) {
           const norm = (y - horizonY) / (canvas.height - horizonY);
-          const drawY = horizonY + Math.pow(norm, 2.3) * (canvas.height - horizonY) + (roadOffset * norm * 0.2);
+          const drawY = horizonY + Math.pow(norm, 2.2) * (canvas.height - horizonY) + (roadOffset * norm * 0.25);
           if (drawY <= canvas.height) {
             ctx.beginPath();
             ctx.moveTo(0, drawY);
             ctx.lineTo(canvas.width, drawY);
-            ctx.strokeStyle = `rgba(0, 242, 254, ${0.03 + norm * 0.25})`;
+            ctx.strokeStyle = `rgba(0, 242, 254, ${0.04 + norm * 0.35})`;
             ctx.stroke();
           }
         }
 
         spawnTrackEntities();
 
-        // Update & Render Data Orbs
+        // Lasers Shooting Upward
+        for (let i = lasers.length - 1; i >= 0; i--) {
+          const l = lasers[i];
+          l.y -= 22;
+          ctx.save();
+          ctx.shadowBlur = 15;
+          ctx.shadowColor = "#00ff87";
+          ctx.fillStyle = "#00ff87";
+          ctx.fillRect(l.x - 2, l.y, 4, 20);
+          ctx.restore();
+
+          // Laser hit obstacle check
+          for (let j = obstacles.length - 1; j >= 0; j--) {
+            const obs = obstacles[j];
+            const obsX = getLaneX(obs.lane, obs.y);
+            const scale = (obs.y - horizonY) / (canvas.height - horizonY);
+            const w = Math.max(12, 65 * scale);
+
+            if (Math.abs(l.x - obsX) < w / 2 && Math.abs(l.y - obs.y) < 30) {
+              obs.hp--;
+              createExplosion(l.x, l.y, "#00ff87", 6);
+              lasers.splice(i, 1);
+
+              if (obs.hp <= 0) {
+                createExplosion(obsX, obs.y, "#ff0055", 26);
+                playSound("explosion");
+                shakeTime = 8;
+                score += 350;
+                obstacles.splice(j, 1);
+              }
+              break;
+            }
+          }
+
+          if (l.y < horizonY) lasers.splice(i, 1);
+        }
+
+        // Data Orbs
         for (let i = orbs.length - 1; i >= 0; i--) {
           const orb = orbs[i];
-          orb.y += speed * 0.85;
+          orb.y += curSpeed * 0.85;
           const x = getLaneX(orb.lane, orb.y);
           const scale = (orb.y - horizonY) / (canvas.height - horizonY);
 
           if (scale > 0.05) {
             ctx.save();
-            ctx.shadowBlur = 12;
-            ctx.shadowColor = "#00ff87";
-            ctx.fillStyle = "#00ff87";
+            ctx.shadowBlur = 16;
+            ctx.shadowColor = "#ffe600";
+            ctx.fillStyle = "#ffe600";
             ctx.beginPath();
-            ctx.arc(x, orb.y, Math.max(3, 13 * scale), 0, Math.PI * 2);
+            ctx.arc(x, orb.y, Math.max(3, 14 * scale), 0, Math.PI * 2);
             ctx.fill();
             ctx.restore();
           }
 
-          // Pickup check
-          if (orb.y > canvas.height - 80 && orb.y < canvas.height - 10) {
+          if (orb.y > canvas.height - 85 && orb.y < canvas.height - 10) {
             if (orb.lane === laneIndex) {
-              score += 200;
+              score += 250;
               comboCount++;
-              if (comboCount % 5 === 0) combo = Math.min(5, combo + 1);
-              updateHUD();
+              nitro = Math.min(100, nitro + 12);
+              playSound("coin");
+              if (comboCount % 4 === 0) combo = Math.min(6, combo + 1);
+              createExplosion(x, orb.y, "#ffe600", 12);
               orbs.splice(i, 1);
               continue;
             }
@@ -300,21 +477,21 @@
           if (orb.y > canvas.height + 30) orbs.splice(i, 1);
         }
 
-        // Update & Render Obstacles
+        // Obstacles (Barricades)
         for (let i = obstacles.length - 1; i >= 0; i--) {
           const obs = obstacles[i];
-          obs.y += speed * 0.85;
+          obs.y += curSpeed * 0.85;
           const x = getLaneX(obs.lane, obs.y);
           const scale = (obs.y - horizonY) / (canvas.height - horizonY);
 
           if (scale > 0.05) {
-            const width = Math.max(10, 60 * scale);
-            const height = Math.max(8, 45 * scale);
+            const width = Math.max(12, 65 * scale);
+            const height = Math.max(8, 48 * scale);
 
             ctx.save();
-            ctx.shadowBlur = 15;
-            ctx.shadowColor = "#ff0055";
-            ctx.fillStyle = "rgba(255, 0, 85, 0.85)";
+            ctx.shadowBlur = 20;
+            ctx.shadowColor = obs.hp < obs.maxHp ? "#ffbd2e" : "#ff0055";
+            ctx.fillStyle = obs.hp < obs.maxHp ? "rgba(255, 189, 46, 0.9)" : "rgba(255, 0, 85, 0.9)";
             ctx.strokeStyle = "#fff";
             ctx.lineWidth = 2 * scale;
             ctx.fillRect(x - width / 2, obs.y - height, width, height);
@@ -322,20 +499,20 @@
             ctx.restore();
           }
 
-          // Collision Check
-          if (obs.y > canvas.height - 75 && obs.y < canvas.height - 20) {
-            if (obs.lane === laneIndex && playerZ < 22) {
+          if (obs.y > canvas.height - 80 && obs.y < canvas.height - 20) {
+            if (obs.lane === laneIndex && playerZ < 25) {
               gameOver();
+              ctx.restore();
               return;
             }
           }
           if (obs.y > canvas.height + 40) obstacles.splice(i, 1);
         }
 
-        // Player Jump Physics
+        // Player Jump
         if (isJumping) {
           playerZ += playerVZ;
-          playerVZ -= 0.8;
+          playerVZ -= 0.85;
           if (playerZ <= 0) {
             playerZ = 0;
             playerVZ = 0;
@@ -344,40 +521,59 @@
         }
 
         // Render Player Hovercraft
-        const playerY = canvas.height - 50 - playerZ;
-        const playerX = getLaneX(laneIndex, canvas.height - 50);
+        const playerY = canvas.height - 52 - playerZ;
+        const playerX = getLaneX(laneIndex, canvas.height - 52);
 
         ctx.save();
         ctx.translate(playerX, playerY);
 
-        // Shadow below hovercraft
-        ctx.fillStyle = "rgba(0, 242, 254, 0.25)";
+        // Shadow
+        ctx.fillStyle = "rgba(0, 242, 254, 0.3)";
         ctx.beginPath();
-        ctx.ellipse(0, 35 + playerZ, 30, 8, 0, 0, Math.PI * 2);
+        ctx.ellipse(0, 36 + playerZ, 34, 9, 0, 0, Math.PI * 2);
         ctx.fill();
 
-        // Neon craft body
-        ctx.shadowBlur = 25;
-        ctx.shadowColor = "#00f2fe";
-        ctx.fillStyle = "#00f2fe";
+        // Craft Hull
+        ctx.shadowBlur = isNitro ? 35 : 20;
+        ctx.shadowColor = isNitro ? "#ff007f" : "#00f2fe";
+        ctx.fillStyle = isNitro ? "#ff007f" : "#00f2fe";
         ctx.beginPath();
-        ctx.moveTo(0, -20);
-        ctx.lineTo(-24, 18);
-        ctx.lineTo(0, 10);
-        ctx.lineTo(24, 18);
+        ctx.moveTo(0, -24);
+        ctx.lineTo(-28, 18);
+        ctx.lineTo(0, 8);
+        ctx.lineTo(28, 18);
         ctx.closePath();
         ctx.fill();
 
-        // Jet booster trail
-        ctx.fillStyle = "#ff007f";
+        // Twin Plasma Cannons
+        ctx.fillStyle = "#fff";
+        ctx.fillRect(-18, -12, 4, 14);
+        ctx.fillRect(14, -12, 4, 14);
+
+        // Jet Boosters
+        ctx.fillStyle = isNitro ? "#ffe600" : "#ff007f";
         ctx.beginPath();
-        ctx.moveTo(-8, 12);
-        ctx.lineTo(0, 26 + Math.random() * 8);
-        ctx.lineTo(8, 12);
+        ctx.moveTo(-9, 12);
+        ctx.lineTo(0, (isNitro ? 42 : 26) + Math.random() * 10);
+        ctx.lineTo(9, 12);
         ctx.fill();
 
         ctx.restore();
 
+        // Particles
+        for (let i = particles.length - 1; i >= 0; i--) {
+          const pt = particles[i];
+          pt.x += pt.vx;
+          pt.y += pt.vy;
+          pt.life--;
+          ctx.shadowBlur = 8;
+          ctx.shadowColor = pt.color;
+          ctx.fillStyle = pt.color;
+          ctx.fillRect(pt.x, pt.y, 3, 3);
+          if (pt.life <= 0) particles.splice(i, 1);
+        }
+
+        ctx.restore();
         requestAnimationFrame(loop);
       }
     </script>
