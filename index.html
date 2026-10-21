@@ -50,6 +50,21 @@
       </button>
     </div>
 
+    <!-- HACKER HIJACK CUTSCENE (Triggers at 50% Health) -->
+    <div class="hijack-screen" id="hackerHijack">
+      <div class="static-noise"></div>
+      <div class="hacker-avatar">
+        <i class="fas fa-user-secret hacker-icon"></i>
+      </div>
+      <div class="hacker-terminal">
+        <p class="hacker-typing" id="hackerDialogue"></p>
+        <span class="hacker-cursor">_</span>
+      </div>
+      <div class="hijack-status">
+        <i class="fas fa-biohazard"></i> ROOT OVERRIDE IN PROGRESS: <span id="countdownSec">5</span>s
+      </div>
+    </div>
+
     <!-- Mission Start / GameOver Overlay -->
     <div class="overlay" id="overlay">
       <div class="overlay-card">
@@ -73,7 +88,30 @@
     </div>
 
     <script>
-      // ================= Matrix Digital Rain =================
+      // ================= Web Audio API (Synthesizer SFX) =================
+      let audioCtx = null;
+      function initAudio() {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === "suspended") audioCtx.resume();
+      }
+
+      function playGlitchSound() {
+        if (!audioCtx) return;
+        const now = audioCtx.currentTime;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.type = "sawtooth";
+        osc.frequency.setValueAtTime(60, now);
+        osc.frequency.linearRampToValueAtTime(140, now + 0.4);
+        gain.gain.setValueAtTime(0.3, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+        osc.start(now);
+        osc.stop(now + 0.4);
+      }
+
+      // ================= Matrix Rain Background =================
       const mCanvas = document.getElementById("matrixCanvas");
       const mCtx = mCanvas.getContext("2d");
       function resizeMatrix() {
@@ -105,7 +143,7 @@
       }
       setInterval(drawMatrix, 35);
 
-      // ================= Cyber Attack Defense Game =================
+      // ================= Cyber Defense Game Logic =================
       const gCanvas = document.getElementById("gameCanvas");
       const ctx = gCanvas.getContext("2d");
       function resizeGame() {
@@ -125,7 +163,10 @@
       let spawnRate = 50;
       let frameCount = 0;
 
-      // Central Hub & Edge Nodes
+      // Cutscene flags
+      let cutsceneTriggered = false;
+      let isCutsceneActive = false;
+
       function getNodes() {
         const cx = gCanvas.width / 2;
         const cy = gCanvas.height / 2;
@@ -143,16 +184,63 @@
       }
 
       function startGame() {
+        initAudio();
         document.getElementById("overlay").style.display = "none";
         running = true;
         score = 0;
         coreHealth = 100;
+        cutsceneTriggered = false;
+        isCutsceneActive = false;
         packets = [];
         particles = [];
         shockwaves = [];
         autoFirewallTimer = 0;
         updateHUD();
         requestAnimationFrame(gameLoop);
+      }
+
+      // HACKER HIJACK CUTSCENE TRIGGER
+      function triggerHackerCutscene() {
+        isCutsceneActive = true;
+        cutsceneTriggered = true;
+        playGlitchSound();
+
+        const hijackLayer = document.getElementById("hackerHijack");
+        hijackLayer.style.display = "flex";
+
+        const text = "HELLO GANAPATHI... DID YOU REALLY THINK YOUR CLOUD PERIMETER COULD STOP US? WE ARE INSIDE YOUR ROOT CLUSTER NOW. SURRENDER IS YOUR ONLY OPTION.";
+        const diagEl = document.getElementById("hackerDialogue");
+        diagEl.innerText = "";
+        let charIndex = 0;
+
+        const typeInterval = setInterval(() => {
+          if (charIndex < text.length) {
+            diagEl.innerText += text[charIndex];
+            charIndex++;
+          } else {
+            clearInterval(typeInterval);
+          }
+        }, 30);
+
+        let countdown = 5;
+        const countEl = document.getElementById("countdownSec");
+        countEl.innerText = countdown;
+
+        const timer = setInterval(() => {
+          countdown--;
+          countEl.innerText = countdown;
+          playGlitchSound();
+          if (countdown <= 0) {
+            clearInterval(timer);
+            // Resume Game in Overdrive Mode
+            hijackLayer.style.display = "none";
+            isCutsceneActive = false;
+            // Purge current wave to give player a fair fight
+            packets = [];
+            coreHealth = 55; // Minor recovery boost
+            updateHUD();
+          }
+        }, 1000);
       }
 
       function updateHUD() {
@@ -164,7 +252,7 @@
         else hEl.className = "val red";
 
         const tEl = document.getElementById("threatLvl");
-        if (score > 40) { tEl.innerText = "CRITICAL BREACH"; tEl.className = "val red"; }
+        if (cutsceneTriggered) { tEl.innerText = "CRITICAL INFILTRATION"; tEl.className = "val red"; }
         else if (score > 15) { tEl.innerText = "HEAVY INTRUSION"; tEl.className = "val yellow"; }
         else { tEl.innerText = "ELEVATED"; tEl.className = "val cyan"; }
       }
@@ -184,15 +272,13 @@
 
       // Click to shoot EMP Laser
       gCanvas.addEventListener("mousedown", (e) => {
-        if (!running) return;
+        if (!running || isCutsceneActive) return;
         const rect = gCanvas.getBoundingClientRect();
         const mx = e.clientX - rect.left;
         const my = e.clientY - rect.top;
 
-        // Shockwave burst at click
         shockwaves.push({ x: mx, y: my, r: 8, maxR: 60, alpha: 1, color: "#00f2fe" });
 
-        // Hit packet check
         for (let i = packets.length - 1; i >= 0; i--) {
           const p = packets[i];
           const dist = Math.hypot(p.x - mx, p.y - my);
@@ -207,7 +293,7 @@
 
       // Special Ability 1: Spacebar Botnet Purge
       function triggerDDoSFlush() {
-        if (!running) return;
+        if (!running || isCutsceneActive) return;
         shockwaves.push({ x: gCanvas.width / 2, y: gCanvas.height / 2, r: 10, maxR: gCanvas.width * 0.8, alpha: 1, color: "#00ff66" });
         packets.forEach(p => addExplosion(p.x, p.y, p.color, 12));
         score += packets.length;
@@ -215,22 +301,21 @@
         updateHUD();
       }
 
-      // Special Ability 2: Auto-Firewall Turrets
+      // Special Ability 2: Auto-Firewall
       function activateAutoDefense() {
-        if (!running) return;
-        autoFirewallTimer = 300; // 5 seconds
+        if (!running || isCutsceneActive) return;
+        autoFirewallTimer = 300;
         shockwaves.push({ x: gCanvas.width / 2, y: gCanvas.height / 2, r: 10, maxR: 120, alpha: 1, color: "#00f2fe" });
       }
 
-      // Special Ability 3: Patch Core Health
+      // Special Ability 3: Patch Core
       function repairGrid() {
-        if (!running) return;
+        if (!running || isCutsceneActive) return;
         coreHealth = Math.min(100, coreHealth + 30);
         addExplosion(gCanvas.width / 2, gCanvas.height / 2, "#00ff66", 25);
         updateHUD();
       }
 
-      // Keyboard Shortcuts
       window.addEventListener("keydown", (e) => {
         if (e.code === "Space") { triggerDDoSFlush(); e.preventDefault(); }
         else if (e.key === "e" || e.key === "E") activateAutoDefense();
@@ -250,7 +335,6 @@
         const cx = gCanvas.width / 2;
         const cy = gCanvas.height / 2;
 
-        // Spawn from random edge of screen
         let sx, sy;
         if (Math.random() < 0.5) {
           sx = Math.random() < 0.5 ? -20 : gCanvas.width + 20;
@@ -261,14 +345,13 @@
         }
 
         const types = [
-          { name: "DDOS_SYN", color: "#ff3366", speed: 1.8, dmg: 8 },
-          { name: "ZERO_DAY", color: "#ff00ea", speed: 2.4, dmg: 14 },
-          { name: "RANSOMWARE", color: "#ffbd2e", speed: 1.4, dmg: 20 }
+          { name: "DDOS_SYN", color: "#ff3366", speed: cutsceneTriggered ? 2.5 : 1.8, dmg: 8 },
+          { name: "ZERO_DAY", color: "#ff00ea", speed: cutsceneTriggered ? 3.0 : 2.4, dmg: 14 },
+          { name: "RANSOMWARE", color: "#ffbd2e", speed: cutsceneTriggered ? 1.8 : 1.4, dmg: 20 }
         ];
         const t = types[Math.floor(Math.random() * types.length)];
-
-        // Angle toward core
         const angle = Math.atan2(cy - sy, cx - sx);
+
         packets.push({
           x: sx,
           y: sy,
@@ -280,14 +363,27 @@
 
       function gameLoop() {
         if (!running) return;
-        frameCount++;
 
+        // Skip gameplay progression during hijack cutscene
+        if (isCutsceneActive) {
+          requestAnimationFrame(gameLoop);
+          return;
+        }
+
+        frameCount++;
         ctx.clearRect(0, 0, gCanvas.width, gCanvas.height);
 
         const nodes = getNodes();
         const core = nodes.core;
 
-        // Auto Firewall Turret Active
+        // CHECK 50% HEALTH TRIGGER FOR HACKER HIJACK
+        if (coreHealth <= 50 && !cutsceneTriggered) {
+          triggerHackerCutscene();
+          requestAnimationFrame(gameLoop);
+          return;
+        }
+
+        // Auto Firewall Turret
         if (autoFirewallTimer > 0) {
           autoFirewallTimer--;
           if (frameCount % 8 === 0 && packets.length > 0) {
@@ -310,7 +406,7 @@
           }
         }
 
-        // Render Network Mesh Lines
+        // Network Mesh Lines
         ctx.strokeStyle = "rgba(0, 242, 254, 0.15)";
         ctx.lineWidth = 1.5;
         nodes.subNodes.forEach((sn) => {
@@ -319,7 +415,6 @@
           ctx.lineTo(sn.x, sn.y);
           ctx.stroke();
 
-          // Connect adjacent nodes
           nodes.subNodes.forEach((sn2) => {
             ctx.beginPath();
             ctx.moveTo(sn.x, sn.y);
@@ -328,7 +423,7 @@
           });
         });
 
-        // Render Sub-nodes
+        // Sub Nodes
         nodes.subNodes.forEach((sn) => {
           ctx.save();
           ctx.shadowBlur = 12;
@@ -348,7 +443,7 @@
           ctx.restore();
         });
 
-        // Render Central Core
+        // Central Core
         ctx.save();
         ctx.shadowBlur = autoFirewallTimer > 0 ? 35 : 20;
         ctx.shadowColor = autoFirewallTimer > 0 ? "#00f2fe" : "#00ff66";
@@ -369,18 +464,17 @@
         ctx.fillText(`${Math.max(0, Math.floor(coreHealth))}%`, core.x, core.y + 12);
         ctx.restore();
 
-        // Spawn Infiltrator Packets
-        if (frameCount % Math.max(18, spawnRate - Math.floor(score / 3)) === 0) {
+        // Spawn Threats
+        if (frameCount % Math.max(16, spawnRate - Math.floor(score / 3)) === 0) {
           spawnThreat();
         }
 
-        // Update & Render Packets
+        // Threat Packets Loop
         for (let i = packets.length - 1; i >= 0; i--) {
           const p = packets[i];
           p.x += p.vx;
           p.y += p.vy;
 
-          // Draw threat packet hexagon
           ctx.save();
           ctx.shadowBlur = 15;
           ctx.shadowColor = p.color;
@@ -395,7 +489,7 @@
           ctx.fillText(p.name, p.x, p.y - 14);
           ctx.restore();
 
-          // Packet reaches Central Core
+          // Packet reaches core
           const distToCore = Math.hypot(p.x - core.x, p.y - core.y);
           if (distToCore < core.r + 5) {
             coreHealth -= p.dmg;
@@ -410,7 +504,7 @@
           }
         }
 
-        // Render Shockwaves
+        // Shockwaves
         for (let i = shockwaves.length - 1; i >= 0; i--) {
           const sw = shockwaves[i];
           sw.r += 4;
@@ -427,7 +521,7 @@
           if (sw.alpha <= 0 || sw.r >= sw.maxR) shockwaves.splice(i, 1);
         }
 
-        // Render Particles
+        // Particles
         for (let i = particles.length - 1; i >= 0; i--) {
           const pt = particles[i];
           pt.x += pt.vx;
