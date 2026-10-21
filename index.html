@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Ganapathi | Cyber Threat Defense Terminal</title>
+    <title>Ganapathi | Cyber Network Intercept</title>
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
@@ -11,148 +11,93 @@
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <!-- Matrix Digital Rain Canvas -->
+    <!-- Matrix Rain Background -->
     <canvas id="matrixCanvas"></canvas>
 
-    <div class="terminal-frame">
-      <!-- Top Title Bar -->
-      <div class="window-header">
-        <div class="window-dots">
-          <span class="dot red"></span>
-          <span class="dot yellow"></span>
-          <span class="dot green"></span>
-        </div>
-        <div class="window-title">
-          <i class="fas fa-terminal"></i> SRE_CYBER_DEFENSE_CONSOLE // GANAPATHI_NODE_01
-        </div>
-        <div class="status-indicator">
-          <span class="pulse-beacon"></span> LIVE BREACH INTERCEPT
-        </div>
+    <!-- Interactive War Room Canvas -->
+    <canvas id="gameCanvas"></canvas>
+
+    <!-- Top Neon HUD -->
+    <div class="hud-bar">
+      <div class="hud-item">
+        <span class="tag">DEFENDER</span>
+        <span class="val cyan">GANAPATHI</span>
       </div>
-
-      <!-- Dashboard Status Grid -->
-      <div class="threat-grid">
-        <div class="threat-card hacker">
-          <div class="card-head">
-            <span class="tag"><i class="fas fa-skull"></i> ADVERSARY INTRUSION</span>
-            <span class="val-text red" id="hackerProgress">0%</span>
-          </div>
-          <div class="bar-track">
-            <div class="bar-fill red" id="hackerBar" style="width: 0%"></div>
-          </div>
-          <div class="threat-meta">
-            <span>Threat Vector: <strong id="threatType">BRUTE_FORCE</strong></span>
-            <span>Target: <strong>PROD-K8S-CLUSTER</strong></span>
-          </div>
-        </div>
-
-        <div class="threat-card node">
-          <div class="card-head">
-            <span class="tag"><i class="fas fa-shield-halved"></i> CLUSTER INTEGRITY</span>
-            <span class="val-text green" id="clusterHealth">100%</span>
-          </div>
-          <div class="bar-track">
-            <div class="bar-fill green" id="healthBar" style="width: 100%"></div>
-          </div>
-          <div class="threat-meta">
-            <span>Honeypot Traps: <strong class="cyan" id="trapsCount">0</strong></span>
-            <span>Attacks Neutralized: <strong class="yellow" id="neutralizedCount">0</strong></span>
-          </div>
-        </div>
+      <div class="hud-item">
+        <span class="tag">CLUSTER INTEGRITY</span>
+        <span class="val green" id="coreHealth">100%</span>
       </div>
-
-      <!-- Terminal Output Stream -->
-      <div class="terminal-body" id="termBody">
-        <div class="log-row info">
-          [SYSTEM_BOOT] Initializing SRE intrusion detection daemon v4.1...
-        </div>
-        <div class="log-row success">
-          [SECURE] Quantum cryptographic keys loaded. Node listening on port 443.
-        </div>
-        <div class="log-row warn">
-          [WARN] Suspicious socket flood detected from 185.220.101.42 (Dark Web Relay)
-        </div>
-        <div class="log-row alert">
-          [ALERT] ADVERSARY COMMENCED LIVE ZERO-DAY EXPLOIT. SELECT COUNTER MEASURE BELOW!
-        </div>
+      <div class="hud-item">
+        <span class="tag">ATTACKS BLOCKED</span>
+        <span class="val yellow" id="scoreVal">0</span>
       </div>
+      <div class="hud-item">
+        <span class="tag">THREAT LEVEL</span>
+        <span class="val red" id="threatLvl">ELEVATED</span>
+      </div>
+    </div>
 
-      <!-- Quick Command Buttons Panel -->
-      <div class="actions-panel">
-        <div class="actions-label">
-          <i class="fas fa-bolt"></i> RAPID COUNTER-MEASURES (CLICK TO EXECUTE):
+    <!-- Bottom Defense Command Bar -->
+    <div class="command-bar">
+      <button class="cmd-pill" onclick="triggerDDoSFlush()">
+        <i class="fas fa-filter"></i> <strong>PURGE BOTNET (SPACE)</strong>
+      </button>
+      <button class="cmd-pill" onclick="activateAutoDefense()">
+        <i class="fas fa-microchip"></i> <strong>AUTO-FIREWALL (E)</strong>
+      </button>
+      <button class="cmd-pill" onclick="repairGrid()">
+        <i class="fas fa-screwdriver-wrench"></i> <strong>PATCH CORE (R)</strong>
+      </button>
+    </div>
+
+    <!-- Mission Start / GameOver Overlay -->
+    <div class="overlay" id="overlay">
+      <div class="overlay-card">
+        <div class="card-glow"></div>
+        <h1 class="glitch-text">NETWORK PERIMETER DEFENSE</h1>
+        <p class="desc">
+          Hostile botnets are penetrating the VPC nodes toward the Central Core.<br />
+          <strong>Click on invading red threat packets to neutralize them with EMP blasts.</strong>
+        </p>
+
+        <div class="tips-box">
+          <div><i class="fas fa-crosshairs"></i> <strong>Left Click:</strong> Fire EMP at threat packets</div>
+          <div><i class="fas fa-bolt"></i> <strong>Spacebar:</strong> Purge all on-screen hostile packets</div>
+          <div><i class="fas fa-shield"></i> <strong>E:</strong> Engage Overclock Auto-Firewall</div>
         </div>
-        <div class="btn-grid">
-          <button class="cmd-btn" onclick="executeDef('FIREWALL')">
-            <i class="fas fa-shield-virus"></i>
-            <div>
-              <strong>[1] DROP PACKETS</strong>
-              <span>Block brute-force IP pool</span>
-            </div>
-          </button>
 
-          <button class="cmd-btn" onclick="executeDef('DECRYPT')">
-            <i class="fas fa-key"></i>
-            <div>
-              <strong>[2] PURGE PAYLOAD</strong>
-              <span>Neutralize active ransomware</span>
-            </div>
-          </button>
-
-          <button class="cmd-btn" onclick="executeDef('HONEYPOT')">
-            <i class="fas fa-network-wired"></i>
-            <div>
-              <strong>[3] DEPLOY HONEYPOT</strong>
-              <span>Trace & decoy adversary botnet</span>
-            </div>
-          </button>
-
-          <button class="cmd-btn" onclick="executeDef('ROTATE')">
-            <i class="fas fa-rotate"></i>
-            <div>
-              <strong>[4] RESEED SECRETS</strong>
-              <span>Rotate TLS & JWT auth tokens</span>
-            </div>
-          </button>
-
-          <button class="cmd-btn offensive" onclick="executeDef('REVERSE_HACK')">
-            <i class="fas fa-biohazard"></i>
-            <div>
-              <strong>[5] REVERSE EXPLOIT</strong>
-              <span>Force kernel panic on attacker server</span>
-            </div>
-          </button>
-        </div>
+        <button class="btn-start" onclick="startGame()">
+          <i class="fas fa-power-off"></i> INITIALIZE INTERCEPT
+        </button>
       </div>
     </div>
 
     <script>
-      // ================= Matrix Rain Animation =================
-      const canvas = document.getElementById("matrixCanvas");
-      const ctx = canvas.getContext("2d");
-
-      function resize() {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
+      // ================= Matrix Digital Rain =================
+      const mCanvas = document.getElementById("matrixCanvas");
+      const mCtx = mCanvas.getContext("2d");
+      function resizeMatrix() {
+        mCanvas.width = window.innerWidth;
+        mCanvas.height = window.innerHeight;
       }
-      window.addEventListener("resize", resize);
-      resize();
+      window.addEventListener("resize", resizeMatrix);
+      resizeMatrix();
 
-      const letters = "01010101ABCDEFHIJKLMNOPQRSTUVWXYZ{}<>/*+~$#";
+      const chars = "01010101ABCDEFHIJKLMNOPQRSTUVWXYZ{}<>/*+~$#";
       const fontSize = 14;
-      let columns = Math.floor(canvas.width / fontSize);
-      let drops = Array(columns).fill(1);
+      let cols = Math.floor(mCanvas.width / fontSize);
+      let drops = Array(cols).fill(1);
 
       function drawMatrix() {
-        ctx.fillStyle = "rgba(4, 8, 14, 0.08)";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = "#00ff66";
-        ctx.font = `${fontSize}px monospace`;
+        mCtx.fillStyle = "rgba(4, 7, 13, 0.08)";
+        mCtx.fillRect(0, 0, mCanvas.width, mCanvas.height);
+        mCtx.fillStyle = "#00ff66";
+        mCtx.font = `${fontSize}px monospace`;
 
         for (let i = 0; i < drops.length; i++) {
-          const text = letters[Math.floor(Math.random() * letters.length)];
-          ctx.fillText(text, i * fontSize, drops[i] * fontSize);
-          if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+          const txt = chars[Math.floor(Math.random() * chars.length)];
+          mCtx.fillText(txt, i * fontSize, drops[i] * fontSize);
+          if (drops[i] * fontSize > mCanvas.height && Math.random() > 0.975) {
             drops[i] = 0;
           }
           drops[i]++;
@@ -160,96 +105,340 @@
       }
       setInterval(drawMatrix, 35);
 
-      // ================= Game Logic =================
-      let hackerBreach = 10;
-      let clusterIntegrity = 100;
-      let neutralized = 0;
-      let traps = 0;
-      let gameOver = false;
+      // ================= Cyber Attack Defense Game =================
+      const gCanvas = document.getElementById("gameCanvas");
+      const ctx = gCanvas.getContext("2d");
+      function resizeGame() {
+        gCanvas.width = window.innerWidth;
+        gCanvas.height = window.innerHeight;
+      }
+      window.addEventListener("resize", resizeGame);
+      resizeGame();
 
-      const threats = [
-        "SYN_FLOOD_DDOS",
-        "SQL_INJECTION",
-        "RANSOMWARE_ENCRYPT",
-        "ZERO_DAY_BUFFER_OVERFLOW",
-        "K8S_CONTAINER_ESCAPE"
-      ];
+      let running = false;
+      let score = 0;
+      let coreHealth = 100;
+      let autoFirewallTimer = 0;
+      let packets = [];
+      let particles = [];
+      let shockwaves = [];
+      let spawnRate = 50;
+      let frameCount = 0;
 
-      function logMessage(msg, type = "info") {
-        const body = document.getElementById("termBody");
-        const row = document.createElement("div");
-        row.className = `log-row ${type}`;
-        const time = new Date().toLocaleTimeString();
-        row.innerHTML = `[${time}] ${msg}`;
-        body.appendChild(row);
-        body.scrollTop = body.scrollHeight;
+      // Central Hub & Edge Nodes
+      function getNodes() {
+        const cx = gCanvas.width / 2;
+        const cy = gCanvas.height / 2;
+        const r = Math.min(gCanvas.width, gCanvas.height) * 0.32;
+        return {
+          core: { x: cx, y: cy, label: "K8S PROD CORE", r: 48 },
+          subNodes: [
+            { x: cx, y: cy - r, label: "AUTH API" },
+            { x: cx + r, y: cy - r * 0.3, label: "DB REPLICA" },
+            { x: cx + r * 0.7, y: cy + r * 0.8, label: "REDIS CACHE" },
+            { x: cx - r * 0.7, y: cy + r * 0.8, label: "INGRESS LOAD BALANCER" },
+            { x: cx - r, y: cy - r * 0.3, label: "GATEWAY PROXY" }
+          ]
+        };
       }
 
-      function updateDashboard() {
-        document.getElementById("hackerProgress").innerText = `${Math.floor(hackerBreach)}%`;
-        document.getElementById("hackerBar").style.width = `${Math.min(100, hackerBreach)}%`;
-
-        document.getElementById("clusterHealth").innerText = `${Math.floor(clusterIntegrity)}%`;
-        document.getElementById("healthBar").style.width = `${Math.max(0, clusterIntegrity)}%`;
-
-        document.getElementById("trapsCount").innerText = traps;
-        document.getElementById("neutralizedCount").innerText = neutralized;
+      function startGame() {
+        document.getElementById("overlay").style.display = "none";
+        running = true;
+        score = 0;
+        coreHealth = 100;
+        packets = [];
+        particles = [];
+        shockwaves = [];
+        autoFirewallTimer = 0;
+        updateHUD();
+        requestAnimationFrame(gameLoop);
       }
 
-      // Attacker Tick Loop
-      setInterval(() => {
-        if (gameOver) return;
+      function updateHUD() {
+        document.getElementById("scoreVal").innerText = score;
+        const hEl = document.getElementById("coreHealth");
+        hEl.innerText = `${Math.max(0, Math.floor(coreHealth))}%`;
+        if (coreHealth > 60) hEl.className = "val green";
+        else if (coreHealth > 30) hEl.className = "val yellow";
+        else hEl.className = "val red";
 
-        // Threat escalates
-        hackerBreach += 1.8;
-        if (hackerBreach > 60) {
-          clusterIntegrity = Math.max(0, clusterIntegrity - 1.2);
+        const tEl = document.getElementById("threatLvl");
+        if (score > 40) { tEl.innerText = "CRITICAL BREACH"; tEl.className = "val red"; }
+        else if (score > 15) { tEl.innerText = "HEAVY INTRUSION"; tEl.className = "val yellow"; }
+        else { tEl.innerText = "ELEVATED"; tEl.className = "val cyan"; }
+      }
+
+      function addExplosion(x, y, color = "#ff3366", count = 18) {
+        for (let i = 0; i < count; i++) {
+          particles.push({
+            x, y,
+            vx: (Math.random() - 0.5) * 8,
+            vy: (Math.random() - 0.5) * 8,
+            life: 25,
+            color
+          });
+        }
+        shockwaves.push({ x, y, r: 5, maxR: 45, alpha: 1, color });
+      }
+
+      // Click to shoot EMP Laser
+      gCanvas.addEventListener("mousedown", (e) => {
+        if (!running) return;
+        const rect = gCanvas.getBoundingClientRect();
+        const mx = e.clientX - rect.left;
+        const my = e.clientY - rect.top;
+
+        // Shockwave burst at click
+        shockwaves.push({ x: mx, y: my, r: 8, maxR: 60, alpha: 1, color: "#00f2fe" });
+
+        // Hit packet check
+        for (let i = packets.length - 1; i >= 0; i--) {
+          const p = packets[i];
+          const dist = Math.hypot(p.x - mx, p.y - my);
+          if (dist < 32) {
+            addExplosion(p.x, p.y, p.color, 16);
+            packets.splice(i, 1);
+            score++;
+            updateHUD();
+          }
+        }
+      });
+
+      // Special Ability 1: Spacebar Botnet Purge
+      function triggerDDoSFlush() {
+        if (!running) return;
+        shockwaves.push({ x: gCanvas.width / 2, y: gCanvas.height / 2, r: 10, maxR: gCanvas.width * 0.8, alpha: 1, color: "#00ff66" });
+        packets.forEach(p => addExplosion(p.x, p.y, p.color, 12));
+        score += packets.length;
+        packets = [];
+        updateHUD();
+      }
+
+      // Special Ability 2: Auto-Firewall Turrets
+      function activateAutoDefense() {
+        if (!running) return;
+        autoFirewallTimer = 300; // 5 seconds
+        shockwaves.push({ x: gCanvas.width / 2, y: gCanvas.height / 2, r: 10, maxR: 120, alpha: 1, color: "#00f2fe" });
+      }
+
+      // Special Ability 3: Patch Core Health
+      function repairGrid() {
+        if (!running) return;
+        coreHealth = Math.min(100, coreHealth + 30);
+        addExplosion(gCanvas.width / 2, gCanvas.height / 2, "#00ff66", 25);
+        updateHUD();
+      }
+
+      // Keyboard Shortcuts
+      window.addEventListener("keydown", (e) => {
+        if (e.code === "Space") { triggerDDoSFlush(); e.preventDefault(); }
+        else if (e.key === "e" || e.key === "E") activateAutoDefense();
+        else if (e.key === "r" || e.key === "R") repairGrid();
+      });
+
+      function gameOver() {
+        running = false;
+        const ov = document.getElementById("overlay");
+        ov.style.display = "flex";
+        ov.querySelector(".glitch-text").innerText = "INFRASTRUCTURE BREACHED";
+        ov.querySelector(".desc").innerHTML = `Central cluster collapsed under cyber load.<br />Total Attacks Neutralized: <strong>${score}</strong>`;
+        ov.querySelector(".btn-start").innerHTML = `<i class="fas fa-rotate-right"></i> RE-DEPLOY MESH`;
+      }
+
+      function spawnThreat() {
+        const cx = gCanvas.width / 2;
+        const cy = gCanvas.height / 2;
+
+        // Spawn from random edge of screen
+        let sx, sy;
+        if (Math.random() < 0.5) {
+          sx = Math.random() < 0.5 ? -20 : gCanvas.width + 20;
+          sy = Math.random() * gCanvas.height;
+        } else {
+          sx = Math.random() * gCanvas.width;
+          sy = Math.random() < 0.5 ? -20 : gCanvas.height + 20;
         }
 
-        if (Math.random() < 0.2) {
-          const randThreat = threats[Math.floor(Math.random() * threats.length)];
-          document.getElementById("threatType").innerText = randThreat;
-          logMessage(`[BREACH ATTEMPT] Adversary injected vector: <strong>${randThreat}</strong>`, "alert");
+        const types = [
+          { name: "DDOS_SYN", color: "#ff3366", speed: 1.8, dmg: 8 },
+          { name: "ZERO_DAY", color: "#ff00ea", speed: 2.4, dmg: 14 },
+          { name: "RANSOMWARE", color: "#ffbd2e", speed: 1.4, dmg: 20 }
+        ];
+        const t = types[Math.floor(Math.random() * types.length)];
+
+        // Angle toward core
+        const angle = Math.atan2(cy - sy, cx - sx);
+        packets.push({
+          x: sx,
+          y: sy,
+          vx: Math.cos(angle) * t.speed,
+          vy: Math.sin(angle) * t.speed,
+          ...t
+        });
+      }
+
+      function gameLoop() {
+        if (!running) return;
+        frameCount++;
+
+        ctx.clearRect(0, 0, gCanvas.width, gCanvas.height);
+
+        const nodes = getNodes();
+        const core = nodes.core;
+
+        // Auto Firewall Turret Active
+        if (autoFirewallTimer > 0) {
+          autoFirewallTimer--;
+          if (frameCount % 8 === 0 && packets.length > 0) {
+            const target = packets[0];
+            ctx.save();
+            ctx.strokeStyle = "#00f2fe";
+            ctx.lineWidth = 3;
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = "#00f2fe";
+            ctx.beginPath();
+            ctx.moveTo(core.x, core.y);
+            ctx.lineTo(target.x, target.y);
+            ctx.stroke();
+            ctx.restore();
+
+            addExplosion(target.x, target.y, target.color, 12);
+            packets.splice(0, 1);
+            score++;
+            updateHUD();
+          }
         }
 
-        if (hackerBreach >= 100 || clusterIntegrity <= 0) {
-          gameOver = true;
-          logMessage("[FATAL] NODE COMPROMISED. Root access granted to adversary! Re-deploy cluster.", "alert");
-          alert("CLUSTER DOWN! Adversary breached the perimeter.");
-          location.reload();
+        // Render Network Mesh Lines
+        ctx.strokeStyle = "rgba(0, 242, 254, 0.15)";
+        ctx.lineWidth = 1.5;
+        nodes.subNodes.forEach((sn) => {
+          ctx.beginPath();
+          ctx.moveTo(core.x, core.y);
+          ctx.lineTo(sn.x, sn.y);
+          ctx.stroke();
+
+          // Connect adjacent nodes
+          nodes.subNodes.forEach((sn2) => {
+            ctx.beginPath();
+            ctx.moveTo(sn.x, sn.y);
+            ctx.lineTo(sn2.x, sn2.y);
+            ctx.stroke();
+          });
+        });
+
+        // Render Sub-nodes
+        nodes.subNodes.forEach((sn) => {
+          ctx.save();
+          ctx.shadowBlur = 12;
+          ctx.shadowColor = "#00f2fe";
+          ctx.fillStyle = "rgba(10, 25, 45, 0.85)";
+          ctx.strokeStyle = "#00f2fe";
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(sn.x, sn.y, 22, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
+
+          ctx.font = "bold 9px 'JetBrains Mono', monospace";
+          ctx.fillStyle = "#ffffff";
+          ctx.textAlign = "center";
+          ctx.fillText(sn.label, sn.x, sn.y + 35);
+          ctx.restore();
+        });
+
+        // Render Central Core
+        ctx.save();
+        ctx.shadowBlur = autoFirewallTimer > 0 ? 35 : 20;
+        ctx.shadowColor = autoFirewallTimer > 0 ? "#00f2fe" : "#00ff66";
+        ctx.fillStyle = "rgba(4, 18, 12, 0.9)";
+        ctx.strokeStyle = autoFirewallTimer > 0 ? "#00f2fe" : "#00ff66";
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(core.x, core.y, core.r, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.font = "bold 11px 'JetBrains Mono', monospace";
+        ctx.fillStyle = "#00ff66";
+        ctx.textAlign = "center";
+        ctx.fillText("PROD CORE", core.x, core.y - 6);
+        ctx.font = "bold 10px 'JetBrains Mono', monospace";
+        ctx.fillStyle = "#ffffff";
+        ctx.fillText(`${Math.max(0, Math.floor(coreHealth))}%`, core.x, core.y + 12);
+        ctx.restore();
+
+        // Spawn Infiltrator Packets
+        if (frameCount % Math.max(18, spawnRate - Math.floor(score / 3)) === 0) {
+          spawnThreat();
         }
 
-        updateDashboard();
-      }, 1000);
+        // Update & Render Packets
+        for (let i = packets.length - 1; i >= 0; i--) {
+          const p = packets[i];
+          p.x += p.vx;
+          p.y += p.vy;
 
-      // Counter Measures Execution
-      function executeDef(action) {
-        if (gameOver) return;
+          // Draw threat packet hexagon
+          ctx.save();
+          ctx.shadowBlur = 15;
+          ctx.shadowColor = p.color;
+          ctx.fillStyle = p.color;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, 11, 0, Math.PI * 2);
+          ctx.fill();
 
-        if (action === "FIREWALL") {
-          hackerBreach = Math.max(0, hackerBreach - 22);
-          neutralized++;
-          logMessage("[IPTABLES] 8,420 hostile IPs added to DROP rule. Traffic load mitigated.", "success");
-        } else if (action === "DECRYPT") {
-          hackerBreach = Math.max(0, hackerBreach - 18);
-          clusterIntegrity = Math.min(100, clusterIntegrity + 8);
-          neutralized++;
-          logMessage("[CIPHER] Payload neutralized via AES-256 private key decryption.", "success");
-        } else if (action === "HONEYPOT") {
-          traps++;
-          hackerBreach = Math.max(0, hackerBreach - 14);
-          logMessage("[HONEYPOT] Adversary routed into decoy sandbox. Attacker IP traced to Moscow.", "cyan");
-        } else if (action === "ROTATE") {
-          hackerBreach = Math.max(0, hackerBreach - 20);
-          clusterIntegrity = Math.min(100, clusterIntegrity + 10);
-          logMessage("[VAULT] Cluster secrets & JWT tokens rotated across all worker nodes.", "info");
-        } else if (action === "REVERSE_HACK") {
-          hackerBreach = Math.max(0, hackerBreach - 35);
-          neutralized += 2;
-          logMessage("[OFFENSIVE] Injected reverse shell payload into C2 server! Attacker botnet severed!", "success");
+          ctx.font = "8px 'JetBrains Mono', monospace";
+          ctx.fillStyle = "#ffffff";
+          ctx.textAlign = "center";
+          ctx.fillText(p.name, p.x, p.y - 14);
+          ctx.restore();
+
+          // Packet reaches Central Core
+          const distToCore = Math.hypot(p.x - core.x, p.y - core.y);
+          if (distToCore < core.r + 5) {
+            coreHealth -= p.dmg;
+            addExplosion(p.x, p.y, p.color, 24);
+            packets.splice(i, 1);
+            updateHUD();
+
+            if (coreHealth <= 0) {
+              gameOver();
+              return;
+            }
+          }
         }
 
-        updateDashboard();
+        // Render Shockwaves
+        for (let i = shockwaves.length - 1; i >= 0; i--) {
+          const sw = shockwaves[i];
+          sw.r += 4;
+          sw.alpha -= 0.035;
+          ctx.save();
+          ctx.strokeStyle = sw.color;
+          ctx.globalAlpha = Math.max(0, sw.alpha);
+          ctx.lineWidth = 2.5;
+          ctx.beginPath();
+          ctx.arc(sw.x, sw.y, sw.r, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.restore();
+
+          if (sw.alpha <= 0 || sw.r >= sw.maxR) shockwaves.splice(i, 1);
+        }
+
+        // Render Particles
+        for (let i = particles.length - 1; i >= 0; i--) {
+          const pt = particles[i];
+          pt.x += pt.vx;
+          pt.y += pt.vy;
+          pt.life--;
+          ctx.fillStyle = pt.color;
+          ctx.fillRect(pt.x, pt.y, 3, 3);
+          if (pt.life <= 0) particles.splice(i, 1);
+        }
+
+        requestAnimationFrame(gameLoop);
       }
     </script>
   </body>
