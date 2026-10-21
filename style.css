@@ -24,28 +24,18 @@ body {
   position: relative;
 }
 
-#matrixCanvas {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-}
-
-#gameCanvas {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  cursor: crosshair;
-}
+#matrixCanvas { position: absolute; inset: 0; z-index: 1; }
+#gameCanvas { position: absolute; inset: 0; z-index: 2; cursor: crosshair; }
 
 /* Top Neon HUD */
 .hud-bar {
   position: absolute;
-  top: 18px;
+  top: 16px;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
   gap: 20px;
-  background: rgba(6, 12, 22, 0.88);
+  background: rgba(6, 12, 22, 0.9);
   border: 1px solid rgba(0, 242, 254, 0.3);
   padding: 10px 28px;
   border-radius: 40px;
@@ -61,13 +51,13 @@ body {
 }
 
 .hud-item .tag {
-  font-size: 0.6rem;
+  font-size: 0.58rem;
   letter-spacing: 2px;
   color: rgba(255, 255, 255, 0.5);
 }
 
 .hud-item .val {
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   font-weight: 800;
 }
 
@@ -76,64 +66,112 @@ body {
 .yellow { color: var(--yellow); text-shadow: 0 0 10px var(--yellow); }
 .red { color: var(--red); text-shadow: 0 0 10px var(--red); }
 
-/* Bottom Action Command Bar */
+/* Boss Incursion HUD */
+.boss-hud {
+  position: absolute;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  max-width: 650px;
+  background: rgba(20, 0, 8, 0.85);
+  border: 1px solid var(--red);
+  border-radius: 8px;
+  padding: 8px 16px;
+  display: none;
+  z-index: 10;
+  box-shadow: 0 0 25px rgba(255, 51, 102, 0.4);
+}
+
+.boss-info {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: var(--red);
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.boss-bar-track {
+  width: 100%;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.boss-bar-fill {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, #ffbd2e, var(--red));
+  box-shadow: 0 0 10px var(--red);
+  transition: width 0.2s ease;
+}
+
+/* Bottom Weapon & Action Bar */
 .command-bar {
   position: absolute;
-  bottom: 22px;
+  bottom: 20px;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
-  gap: 14px;
+  gap: 12px;
   z-index: 10;
 }
 
-.cmd-pill {
+.wep-btn {
   background: rgba(8, 16, 28, 0.85);
-  border: 1px solid rgba(0, 255, 102, 0.35);
+  border: 1px solid rgba(0, 242, 254, 0.35);
   color: #fff;
-  padding: 12px 20px;
+  padding: 10px 18px;
   border-radius: 8px;
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.72rem;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   backdrop-filter: blur(10px);
   transition: all 0.2s ease;
-  box-shadow: 0 0 15px rgba(0, 255, 102, 0.15);
 }
 
-.cmd-pill i {
-  color: var(--green);
-  font-size: 0.95rem;
+.wep-btn.active {
+  background: rgba(0, 242, 254, 0.2);
+  border-color: var(--cyan);
+  box-shadow: 0 0 20px rgba(0, 242, 254, 0.4);
 }
 
-.cmd-pill:hover {
-  background: rgba(0, 255, 102, 0.15);
-  border-color: var(--green);
+.cmd-pill.ultra {
+  background: rgba(255, 51, 102, 0.2);
+  border: 1px solid var(--red);
+  color: #fff;
+  padding: 10px 22px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.72rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 0 20px rgba(255, 51, 102, 0.3);
+}
+
+.cmd-pill.ultra:hover {
+  background: rgba(255, 51, 102, 0.4);
   transform: translateY(-2px);
-  box-shadow: 0 0 25px rgba(0, 255, 102, 0.35);
 }
 
-/* ================= HACKER HIJACK CUTSCENE ================= */
+/* ================= HACKER HIJACK & OVERRIDE ================= */
 .hijack-screen {
   position: absolute;
   inset: 0;
-  background: #000000;
+  background: #000;
   z-index: 100;
   display: none;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  padding: 40px;
-  animation: glitchIn 0.2s infinite alternate;
-}
-
-@keyframes glitchIn {
-  0% { transform: translate(0, 0); }
-  50% { transform: translate(-2px, 1px); }
-  100% { transform: translate(2px, -1px); }
+  padding: 30px;
 }
 
 .static-noise {
@@ -144,53 +182,80 @@ body {
   pointer-events: none;
 }
 
-.hacker-avatar {
-  margin-bottom: 25px;
-  position: relative;
-}
-
 .hacker-icon {
-  font-size: 6rem;
+  font-size: 5rem;
   color: var(--red);
-  text-shadow: 0 0 35px var(--red), 0 0 70px rgba(255, 51, 102, 0.6);
-  animation: pulseAvatar 1.2s infinite alternate;
-}
-
-@keyframes pulseAvatar {
-  0% { transform: scale(0.95); opacity: 0.8; }
-  100% { transform: scale(1.08); opacity: 1; }
+  text-shadow: 0 0 35px var(--red);
 }
 
 .hacker-terminal {
-  max-width: 750px;
+  max-width: 700px;
   background: rgba(15, 0, 5, 0.8);
   border: 1px solid var(--red);
-  padding: 24px 30px;
+  padding: 20px 25px;
   border-radius: 8px;
   box-shadow: 0 0 30px rgba(255, 51, 102, 0.4);
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 1.1rem;
+  font-size: 1rem;
   color: #ff3366;
-  line-height: 1.8;
+  line-height: 1.7;
   text-align: left;
-  letter-spacing: 1px;
+  margin: 20px 0;
 }
 
-.hacker-cursor {
-  display: inline-block;
-  color: var(--red);
-  animation: blink 0.8s infinite;
+.override-panel {
+  background: rgba(8, 14, 24, 0.95);
+  border: 1px solid var(--cyan);
+  padding: 18px 24px;
+  border-radius: 10px;
+  text-align: center;
+}
+
+.override-prompt {
+  font-size: 0.75rem;
+  color: var(--cyan);
+  margin-bottom: 12px;
+}
+
+.cipher-keys {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  margin-bottom: 10px;
+}
+
+.key-box {
+  width: 45px;
+  height: 45px;
+  background: rgba(0, 242, 254, 0.1);
+  border: 1px solid var(--cyan);
+  color: #fff;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.key-box:hover {
+  background: var(--cyan);
+  color: #040810;
+  box-shadow: 0 0 15px var(--cyan);
+}
+
+.cipher-target {
+  font-size: 0.75rem;
+  color: var(--yellow);
 }
 
 .hijack-status {
-  margin-top: 30px;
-  font-size: 0.85rem;
-  color: var(--yellow);
-  letter-spacing: 2px;
+  margin-top: 20px;
+  font-size: 0.82rem;
+  color: var(--red);
   font-weight: 700;
 }
 
-/* ================= Start / Game Over Overlay ================= */
+/* Start / Game Over Overlay */
 .overlay {
   position: absolute;
   inset: 0;
@@ -203,22 +268,20 @@ body {
 }
 
 .overlay-card {
-  position: relative;
   background: rgba(10, 18, 32, 0.95);
   border: 1px solid rgba(0, 242, 254, 0.4);
   border-radius: 16px;
-  padding: 45px 50px;
-  max-width: 600px;
+  padding: 40px 48px;
+  max-width: 580px;
   text-align: center;
   box-shadow: 0 25px 60px rgba(0, 0, 0, 0.9), 0 0 40px rgba(0, 242, 254, 0.25);
-  overflow: hidden;
 }
 
 .glitch-text {
   font-family: 'Orbitron', sans-serif;
   font-size: 1.8rem;
   font-weight: 900;
-  letter-spacing: 3px;
+  letter-spacing: 2px;
   color: #fff;
   text-shadow: 0 0 20px var(--cyan);
   margin-bottom: 12px;
@@ -228,26 +291,23 @@ body {
   font-size: 0.8rem;
   color: rgba(255, 255, 255, 0.75);
   line-height: 1.6;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
 }
 
 .tips-box {
   background: rgba(0, 0, 0, 0.5);
   border: 1px dashed rgba(0, 242, 254, 0.3);
-  padding: 16px;
+  padding: 14px;
   border-radius: 8px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  font-size: 0.75rem;
+  gap: 8px;
+  font-size: 0.72rem;
   text-align: left;
-  margin-bottom: 28px;
+  margin-bottom: 24px;
 }
 
-.tips-box i {
-  color: var(--cyan);
-  margin-right: 8px;
-}
+.tips-box i { color: var(--cyan); margin-right: 6px; }
 
 .btn-start {
   background: linear-gradient(135deg, var(--green), #00b894);
@@ -256,7 +316,6 @@ body {
   font-family: 'JetBrains Mono', monospace;
   font-weight: 800;
   font-size: 0.85rem;
-  letter-spacing: 1px;
   padding: 14px 34px;
   border-radius: 8px;
   cursor: pointer;
@@ -268,6 +327,6 @@ body {
 }
 
 .btn-start:hover {
-  transform: translateY(-2px) scale(1.03);
-  box-shadow: 0 0 45px rgba(0, 255, 102, 0.8);
+  transform: translateY(-2px);
+  box-shadow: 0 0 40px rgba(0, 255, 102, 0.7);
 }

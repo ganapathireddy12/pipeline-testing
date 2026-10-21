@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Ganapathi | Cyber Network Intercept</title>
+    <title>Ganapathi | Cyber War Room Overdrive</title>
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
@@ -24,33 +24,51 @@
         <span class="val cyan">GANAPATHI</span>
       </div>
       <div class="hud-item">
-        <span class="tag">CLUSTER INTEGRITY</span>
+        <span class="tag">CORE INTEGRITY</span>
         <span class="val green" id="coreHealth">100%</span>
       </div>
       <div class="hud-item">
-        <span class="tag">ATTACKS BLOCKED</span>
+        <span class="tag">THREATS PURGED</span>
         <span class="val yellow" id="scoreVal">0</span>
       </div>
       <div class="hud-item">
-        <span class="tag">THREAT LEVEL</span>
-        <span class="val red" id="threatLvl">ELEVATED</span>
+        <span class="tag">ACTIVE WEAPON</span>
+        <span class="val cyan" id="activeWeaponTxt">PULSE LASER [1]</span>
+      </div>
+      <div class="hud-item">
+        <span class="tag">CRITICAL ALERT</span>
+        <span class="val red" id="threatLvl">NORMAL</span>
       </div>
     </div>
 
-    <!-- Bottom Defense Command Bar -->
+    <!-- Boss Health Bar (Hidden initially) -->
+    <div class="boss-hud" id="bossHud">
+      <div class="boss-info">
+        <span><i class="fas fa-skull"></i> TITAN ROOT AI: <strong>SHADOW_ROOT.EXE</strong></span>
+        <span id="bossHpVal">100%</span>
+      </div>
+      <div class="boss-bar-track">
+        <div class="boss-bar-fill" id="bossBarFill"></div>
+      </div>
+    </div>
+
+    <!-- Weapon Selector & Ultimate Bar -->
     <div class="command-bar">
-      <button class="cmd-pill" onclick="triggerDDoSFlush()">
-        <i class="fas fa-filter"></i> <strong>PURGE BOTNET (SPACE)</strong>
+      <button class="wep-btn active" id="wep1" onclick="setWeapon(1)">
+        <i class="fas fa-bolt"></i> [1] PULSE
       </button>
-      <button class="cmd-pill" onclick="activateAutoDefense()">
-        <i class="fas fa-microchip"></i> <strong>AUTO-FIREWALL (E)</strong>
+      <button class="wep-btn" id="wep2" onclick="setWeapon(2)">
+        <i class="fas fa-crosshairs"></i> [2] RAILGUN
       </button>
-      <button class="cmd-pill" onclick="repairGrid()">
-        <i class="fas fa-screwdriver-wrench"></i> <strong>PATCH CORE (R)</strong>
+      <button class="wep-btn" id="wep3" onclick="setWeapon(3)">
+        <i class="fas fa-snowflake"></i> [3] CRYO-FREEZE
+      </button>
+      <button class="cmd-pill ultra" onclick="triggerDDoSFlush()">
+        <i class="fas fa-radiation"></i> <strong>ION NUKE (SPACE)</strong>
       </button>
     </div>
 
-    <!-- HACKER HIJACK CUTSCENE (Triggers at 50% Health) -->
+    <!-- HACKER HIJACK CUTSCENE (50% HP or Boss Trigger) -->
     <div class="hijack-screen" id="hackerHijack">
       <div class="static-noise"></div>
       <div class="hacker-avatar">
@@ -60,25 +78,34 @@
         <p class="hacker-typing" id="hackerDialogue"></p>
         <span class="hacker-cursor">_</span>
       </div>
+      <div class="override-panel" id="overridePanel">
+        <p class="override-prompt">INPUT ROOT OVERRIDE CIPHER TO STRIKE BACK:</p>
+        <div class="cipher-keys">
+          <button class="key-box" onclick="pressCipher('A')">A</button>
+          <button class="key-box" onclick="pressCipher('S')">S</button>
+          <button class="key-box" onclick="pressCipher('D')">D</button>
+          <button class="key-box" onclick="pressCipher('F')">F</button>
+        </div>
+        <p class="cipher-target" id="cipherTarget">REQUIRED SEQUENCE: <strong>A - D - F</strong></p>
+      </div>
       <div class="hijack-status">
-        <i class="fas fa-biohazard"></i> ROOT OVERRIDE IN PROGRESS: <span id="countdownSec">5</span>s
+        <i class="fas fa-biohazard"></i> SYSTEM LOCKOUT TIMER: <span id="countdownSec">8</span>s
       </div>
     </div>
 
-    <!-- Mission Start / GameOver Overlay -->
+    <!-- Start / GameOver Overlay -->
     <div class="overlay" id="overlay">
       <div class="overlay-card">
         <div class="card-glow"></div>
-        <h1 class="glitch-text">NETWORK PERIMETER DEFENSE</h1>
+        <h1 class="glitch-text">CYBER WAR ROOM // OVERDRIVE</h1>
         <p class="desc">
-          Hostile botnets are penetrating the VPC nodes toward the Central Core.<br />
-          <strong>Click on invading red threat packets to neutralize them with EMP blasts.</strong>
+          Adversary AI botnets have breached the VPC. Deploy weapons, neutralize threat clusters, and prepare for the <strong>Titan Boss Incursion</strong>.
         </p>
 
         <div class="tips-box">
-          <div><i class="fas fa-crosshairs"></i> <strong>Left Click:</strong> Fire EMP at threat packets</div>
-          <div><i class="fas fa-bolt"></i> <strong>Spacebar:</strong> Purge all on-screen hostile packets</div>
-          <div><i class="fas fa-shield"></i> <strong>E:</strong> Engage Overclock Auto-Firewall</div>
+          <div><i class="fas fa-bolt"></i> <strong>[1, 2, 3]</strong> Switch Weapons: Pulse, Railgun & Freeze</div>
+          <div><i class="fas fa-crosshairs"></i> <strong>Mouse Click:</strong> Fire weapon at hostile coordinates</div>
+          <div><i class="fas fa-radiation"></i> <strong>Spacebar:</strong> Ion Nuke (Full screen botnet wipe)</div>
         </div>
 
         <button class="btn-start" onclick="startGame()">
@@ -88,30 +115,53 @@
     </div>
 
     <script>
-      // ================= Web Audio API (Synthesizer SFX) =================
+      // ================= Web Audio API Synthesizer =================
       let audioCtx = null;
       function initAudio() {
         if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         if (audioCtx.state === "suspended") audioCtx.resume();
       }
 
-      function playGlitchSound() {
+      function playSound(type) {
         if (!audioCtx) return;
         const now = audioCtx.currentTime;
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
         osc.connect(gain);
         gain.connect(audioCtx.destination);
-        osc.type = "sawtooth";
-        osc.frequency.setValueAtTime(60, now);
-        osc.frequency.linearRampToValueAtTime(140, now + 0.4);
-        gain.gain.setValueAtTime(0.3, now);
-        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
-        osc.start(now);
-        osc.stop(now + 0.4);
+
+        if (type === "laser") {
+          osc.type = "sawtooth";
+          osc.frequency.setValueAtTime(900, now);
+          osc.frequency.exponentialRampToValueAtTime(150, now + 0.1);
+          gain.gain.setValueAtTime(0.2, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+          osc.start(now); osc.stop(now + 0.1);
+        } else if (type === "railgun") {
+          osc.type = "triangle";
+          osc.frequency.setValueAtTime(250, now);
+          osc.frequency.linearRampToValueAtTime(1400, now + 0.25);
+          gain.gain.setValueAtTime(0.35, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+          osc.start(now); osc.stop(now + 0.25);
+        } else if (type === "freeze") {
+          osc.type = "sine";
+          osc.frequency.setValueAtTime(1200, now);
+          osc.frequency.exponentialRampToValueAtTime(300, now + 0.3);
+          gain.gain.setValueAtTime(0.25, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+          osc.start(now); osc.stop(now + 0.3);
+        } else if (type === "glitch") {
+          osc.type = "square";
+          osc.frequency.setValueAtTime(70, now);
+          osc.frequency.linearRampToValueAtTime(180, now + 0.4);
+          gain.gain.setValueAtTime(0.35, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+          osc.start(now); osc.stop(now + 0.4);
+        }
       }
 
-      // ================= Matrix Rain Background =================
+      // ================= Matrix Rain =================
       const mCanvas = document.getElementById("matrixCanvas");
       const mCtx = mCanvas.getContext("2d");
       function resizeMatrix() {
@@ -143,7 +193,7 @@
       }
       setInterval(drawMatrix, 35);
 
-      // ================= Cyber Defense Game Logic =================
+      // ================= Cyber War Room Game Logic =================
       const gCanvas = document.getElementById("gameCanvas");
       const ctx = gCanvas.getContext("2d");
       function resizeGame() {
@@ -156,59 +206,85 @@
       let running = false;
       let score = 0;
       let coreHealth = 100;
-      let autoFirewallTimer = 0;
+      let activeWeapon = 1; // 1: Pulse, 2: Railgun, 3: Freeze
+      let freezeTimer = 0;
+      let railBeams = [];
       let packets = [];
       let particles = [];
       let shockwaves = [];
-      let spawnRate = 50;
       let frameCount = 0;
+      let shakeTime = 0;
+
+      // Boss Logic
+      let boss = null;
+      let bossSpawned = false;
 
       // Cutscene flags
       let cutsceneTriggered = false;
       let isCutsceneActive = false;
+      let cipherSequence = ["A", "D", "F"];
+      let playerEntered = [];
 
       function getNodes() {
         const cx = gCanvas.width / 2;
         const cy = gCanvas.height / 2;
         const r = Math.min(gCanvas.width, gCanvas.height) * 0.32;
         return {
-          core: { x: cx, y: cy, label: "K8S PROD CORE", r: 48 },
+          core: { x: cx, y: cy, label: "K8S PROD CORE", r: 50 },
           subNodes: [
             { x: cx, y: cy - r, label: "AUTH API" },
-            { x: cx + r, y: cy - r * 0.3, label: "DB REPLICA" },
-            { x: cx + r * 0.7, y: cy + r * 0.8, label: "REDIS CACHE" },
-            { x: cx - r * 0.7, y: cy + r * 0.8, label: "INGRESS LOAD BALANCER" },
-            { x: cx - r, y: cy - r * 0.3, label: "GATEWAY PROXY" }
+            { x: cx + r, y: cy - r * 0.3, label: "DB CLUSTER" },
+            { x: cx + r * 0.7, y: cy + r * 0.8, label: "REDIS IN-MEMORY" },
+            { x: cx - r * 0.7, y: cy + r * 0.8, label: "LOAD BALANCER" },
+            { x: cx - r, y: cy - r * 0.3, label: "API GATEWAY" }
           ]
         };
       }
 
+      function setWeapon(num) {
+        activeWeapon = num;
+        document.querySelectorAll(".wep-btn").forEach(b => b.classList.remove("active"));
+        document.getElementById(`wep${num}`).classList.add("active");
+        const names = { 1: "PULSE LASER [1]", 2: "EMP RAILGUN [2]", 3: "CRYO-FREEZE [3]" };
+        document.getElementById("activeWeaponTxt").innerText = names[num];
+      }
+
+      window.addEventListener("keydown", (e) => {
+        if (e.key === "1") setWeapon(1);
+        else if (e.key === "2") setWeapon(2);
+        else if (e.key === "3") setWeapon(3);
+        else if (e.code === "Space") { triggerDDoSFlush(); e.preventDefault(); }
+      });
+
       function startGame() {
         initAudio();
         document.getElementById("overlay").style.display = "none";
+        document.getElementById("bossHud").style.display = "none";
         running = true;
         score = 0;
         coreHealth = 100;
+        boss = null;
+        bossSpawned = false;
         cutsceneTriggered = false;
         isCutsceneActive = false;
         packets = [];
         particles = [];
         shockwaves = [];
-        autoFirewallTimer = 0;
+        railBeams = [];
         updateHUD();
         requestAnimationFrame(gameLoop);
       }
 
-      // HACKER HIJACK CUTSCENE TRIGGER
+      // HACKER HIJACK & REVERSE COUNTER-HACK
       function triggerHackerCutscene() {
         isCutsceneActive = true;
         cutsceneTriggered = true;
-        playGlitchSound();
+        playSound("glitch");
 
         const hijackLayer = document.getElementById("hackerHijack");
         hijackLayer.style.display = "flex";
 
-        const text = "HELLO GANAPATHI... DID YOU REALLY THINK YOUR CLOUD PERIMETER COULD STOP US? WE ARE INSIDE YOUR ROOT CLUSTER NOW. SURRENDER IS YOUR ONLY OPTION.";
+        const text = "HELLO GANAPATHI... DID YOU REALLY THINK YOUR FIREWALLS COULD HOLD BACK SHADOW_ROOT? WE HAVE ACCESSED ROOT KEYS.";
         const diagEl = document.getElementById("hackerDialogue");
         diagEl.innerText = "";
         let charIndex = 0;
@@ -220,27 +296,46 @@
           } else {
             clearInterval(typeInterval);
           }
-        }, 30);
+        }, 25);
 
-        let countdown = 5;
+        playerEntered = [];
+        let countdown = 8;
         const countEl = document.getElementById("countdownSec");
         countEl.innerText = countdown;
 
-        const timer = setInterval(() => {
+        window.hijackTimer = setInterval(() => {
           countdown--;
           countEl.innerText = countdown;
-          playGlitchSound();
+          playSound("glitch");
           if (countdown <= 0) {
-            clearInterval(timer);
-            // Resume Game in Overdrive Mode
+            clearInterval(window.hijackTimer);
             hijackLayer.style.display = "none";
             isCutsceneActive = false;
-            // Purge current wave to give player a fair fight
-            packets = [];
-            coreHealth = 55; // Minor recovery boost
+            coreHealth = 35;
             updateHUD();
           }
         }, 1000);
+      }
+
+      function pressCipher(key) {
+        playerEntered.push(key);
+        playSound("laser");
+        if (playerEntered.join("") === cipherSequence.join("")) {
+          // Success Reverse Hack!
+          clearInterval(window.hijackTimer);
+          document.getElementById("hackerDialogue").innerText = "CRITICAL ALERT: COUNTER-PAYLOAD RECEIVED! GANAPATHI EXPLOIT DEPLOYED TO ADVERSARY NODE!";
+          document.getElementById("hackerDialogue").style.color = "#00ff66";
+          setTimeout(() => {
+            document.getElementById("hackerHijack").style.display = "none";
+            isCutsceneActive = false;
+            coreHealth = 80; // Huge heal from counter-hack!
+            score += 10;
+            triggerDDoSFlush();
+            updateHUD();
+          }, 1400);
+        } else if (playerEntered.length >= cipherSequence.length) {
+          playerEntered = []; // Reset on wrong
+        }
       }
 
       function updateHUD() {
@@ -252,162 +347,183 @@
         else hEl.className = "val red";
 
         const tEl = document.getElementById("threatLvl");
-        if (cutsceneTriggered) { tEl.innerText = "CRITICAL INFILTRATION"; tEl.className = "val red"; }
-        else if (score > 15) { tEl.innerText = "HEAVY INTRUSION"; tEl.className = "val yellow"; }
-        else { tEl.innerText = "ELEVATED"; tEl.className = "val cyan"; }
+        if (boss) { tEl.innerText = "BOSS FIGHT // TITAN ROOT"; tEl.className = "val red"; }
+        else if (cutsceneTriggered) { tEl.innerText = "ELEVATED POST-BREACH"; tEl.className = "val yellow"; }
+        else { tEl.innerText = "NORMAL"; tEl.className = "val green"; }
       }
 
       function addExplosion(x, y, color = "#ff3366", count = 18) {
         for (let i = 0; i < count; i++) {
           particles.push({
             x, y,
-            vx: (Math.random() - 0.5) * 8,
-            vy: (Math.random() - 0.5) * 8,
+            vx: (Math.random() - 0.5) * 9,
+            vy: (Math.random() - 0.5) * 9,
             life: 25,
             color
           });
         }
-        shockwaves.push({ x, y, r: 5, maxR: 45, alpha: 1, color });
+        shockwaves.push({ x, y, r: 6, maxR: 45, alpha: 1, color });
       }
 
-      // Click to shoot EMP Laser
+      // Shooting Weapons
       gCanvas.addEventListener("mousedown", (e) => {
         if (!running || isCutsceneActive) return;
         const rect = gCanvas.getBoundingClientRect();
         const mx = e.clientX - rect.left;
         const my = e.clientY - rect.top;
+        const core = getNodes().core;
 
-        shockwaves.push({ x: mx, y: my, r: 8, maxR: 60, alpha: 1, color: "#00f2fe" });
-
-        for (let i = packets.length - 1; i >= 0; i--) {
-          const p = packets[i];
-          const dist = Math.hypot(p.x - mx, p.y - my);
-          if (dist < 32) {
-            addExplosion(p.x, p.y, p.color, 16);
-            packets.splice(i, 1);
-            score++;
-            updateHUD();
+        if (activeWeapon === 1) {
+          // Pulse Laser
+          playSound("laser");
+          shockwaves.push({ x: mx, y: my, r: 6, maxR: 35, alpha: 1, color: "#00f2fe" });
+          checkPacketHit(mx, my, 36, 1);
+        } else if (activeWeapon === 2) {
+          // Railgun (Core to Click piercing beam)
+          playSound("railgun");
+          shakeTime = 8;
+          railBeams.push({ x1: core.x, y1: core.y, x2: mx, y2: my, alpha: 1 });
+          // Check all packets near the line
+          packets.forEach(p => {
+            const dist = distToSegment({ x: p.x, y: p.y }, { x: core.x, y: core.y }, { x: mx, y: my });
+            if (dist < 40) {
+              p.hp -= 3;
+              addExplosion(p.x, p.y, "#00ff66", 12);
+            }
+          });
+          if (boss) {
+            const bDist = distToSegment({ x: boss.x, y: boss.y }, { x: core.x, y: core.y }, { x: mx, y: my });
+            if (bDist < 70) {
+              boss.hp -= 15;
+              addExplosion(boss.x, boss.y, "#ff00ea", 20);
+            }
           }
+        } else if (activeWeapon === 3) {
+          // Cryo Freeze
+          playSound("freeze");
+          freezeTimer = 220; // Freeze threats for ~4s
+          shockwaves.push({ x: mx, y: my, r: 10, maxR: 160, alpha: 1, color: "#a5f3fc" });
         }
       });
 
-      // Special Ability 1: Spacebar Botnet Purge
+      function distToSegment(p, v, w) {
+        const l2 = Math.hypot(v.x - w.x, v.y - w.y) ** 2;
+        if (l2 === 0) return Math.hypot(p.x - v.x, p.y - v.y);
+        let t = ((p.x - v.x) * (w.x - v.x) + (p.y - v.y) * (w.y - v.y)) / l2;
+        t = Math.max(0, Math.min(1, t));
+        return Math.hypot(p.x - (v.x + t * (w.x - v.x)), p.y - (v.y + t * (w.y - v.y)));
+      }
+
+      function checkPacketHit(x, y, radius, dmg) {
+        for (let i = packets.length - 1; i >= 0; i--) {
+          const p = packets[i];
+          if (Math.hypot(p.x - x, p.y - y) < radius) {
+            p.hp -= dmg;
+            if (p.hp <= 0) {
+              addExplosion(p.x, p.y, p.color, 16);
+              packets.splice(i, 1);
+              score++;
+              updateHUD();
+            }
+            break;
+          }
+        }
+        if (boss && Math.hypot(boss.x - x, boss.y - y) < 65) {
+          boss.hp -= 5;
+          addExplosion(boss.x, boss.y, "#ff3366", 12);
+        }
+      }
+
+      // Spacebar Ion Nuke
       function triggerDDoSFlush() {
         if (!running || isCutsceneActive) return;
-        shockwaves.push({ x: gCanvas.width / 2, y: gCanvas.height / 2, r: 10, maxR: gCanvas.width * 0.8, alpha: 1, color: "#00ff66" });
-        packets.forEach(p => addExplosion(p.x, p.y, p.color, 12));
+        shakeTime = 16;
+        shockwaves.push({ x: gCanvas.width / 2, y: gCanvas.height / 2, r: 10, maxR: gCanvas.width * 0.9, alpha: 1, color: "#00ff66" });
+        packets.forEach(p => addExplosion(p.x, p.y, p.color, 14));
         score += packets.length;
         packets = [];
+        if (boss) boss.hp -= 25;
         updateHUD();
       }
 
-      // Special Ability 2: Auto-Firewall
-      function activateAutoDefense() {
-        if (!running || isCutsceneActive) return;
-        autoFirewallTimer = 300;
-        shockwaves.push({ x: gCanvas.width / 2, y: gCanvas.height / 2, r: 10, maxR: 120, alpha: 1, color: "#00f2fe" });
-      }
-
-      // Special Ability 3: Patch Core
-      function repairGrid() {
-        if (!running || isCutsceneActive) return;
-        coreHealth = Math.min(100, coreHealth + 30);
-        addExplosion(gCanvas.width / 2, gCanvas.height / 2, "#00ff66", 25);
-        updateHUD();
-      }
-
-      window.addEventListener("keydown", (e) => {
-        if (e.code === "Space") { triggerDDoSFlush(); e.preventDefault(); }
-        else if (e.key === "e" || e.key === "E") activateAutoDefense();
-        else if (e.key === "r" || e.key === "R") repairGrid();
-      });
-
-      function gameOver() {
-        running = false;
-        const ov = document.getElementById("overlay");
-        ov.style.display = "flex";
-        ov.querySelector(".glitch-text").innerText = "INFRASTRUCTURE BREACHED";
-        ov.querySelector(".desc").innerHTML = `Central cluster collapsed under cyber load.<br />Total Attacks Neutralized: <strong>${score}</strong>`;
-        ov.querySelector(".btn-start").innerHTML = `<i class="fas fa-rotate-right"></i> RE-DEPLOY MESH`;
+      function spawnBoss() {
+        bossSpawned = true;
+        boss = {
+          x: gCanvas.width / 2,
+          y: 90,
+          vx: 2.2,
+          hp: 120,
+          maxHp: 120
+        };
+        document.getElementById("bossHud").style.display = "block";
+        shakeTime = 25;
+        playSound("glitch");
       }
 
       function spawnThreat() {
         const cx = gCanvas.width / 2;
         const cy = gCanvas.height / 2;
 
-        let sx, sy;
-        if (Math.random() < 0.5) {
-          sx = Math.random() < 0.5 ? -20 : gCanvas.width + 20;
-          sy = Math.random() * gCanvas.height;
-        } else {
-          sx = Math.random() * gCanvas.width;
-          sy = Math.random() < 0.5 ? -20 : gCanvas.height + 20;
-        }
+        let sx = Math.random() < 0.5 ? -25 : gCanvas.width + 25;
+        let sy = Math.random() * gCanvas.height;
 
         const types = [
-          { name: "DDOS_SYN", color: "#ff3366", speed: cutsceneTriggered ? 2.5 : 1.8, dmg: 8 },
-          { name: "ZERO_DAY", color: "#ff00ea", speed: cutsceneTriggered ? 3.0 : 2.4, dmg: 14 },
-          { name: "RANSOMWARE", color: "#ffbd2e", speed: cutsceneTriggered ? 1.8 : 1.4, dmg: 20 }
+          { name: "SYN_FLOOD", color: "#ff3366", speed: 2.2, hp: 1, dmg: 8 },
+          { name: "ZERO_DAY", color: "#ff00ea", speed: 2.8, hp: 2, dmg: 14 },
+          { name: "RANSOMWARE", color: "#ffbd2e", speed: 1.6, hp: 3, dmg: 20 }
         ];
         const t = types[Math.floor(Math.random() * types.length)];
         const angle = Math.atan2(cy - sy, cx - sx);
 
         packets.push({
-          x: sx,
-          y: sy,
+          x: sx, y: sy,
           vx: Math.cos(angle) * t.speed,
           vy: Math.sin(angle) * t.speed,
           ...t
         });
       }
 
+      function gameOver(won = false) {
+        running = false;
+        const ov = document.getElementById("overlay");
+        ov.style.display = "flex";
+        ov.querySelector(".glitch-text").innerText = won ? "CYBERWAR VICTORY" : "CLUSTER COMPROMISED";
+        ov.querySelector(".desc").innerHTML = won 
+          ? `TITAN ROOT neutralized! Total Threats Purged: <strong>${score}</strong>`
+          : `Core perimeter collapsed under cyber barrage.<br />Threats Neutralized: <strong>${score}</strong>`;
+        ov.querySelector(".btn-start").innerHTML = `<i class="fas fa-rotate-right"></i> RE-DEPLOY MESH`;
+      }
+
       function gameLoop() {
         if (!running) return;
-
-        // Skip gameplay progression during hijack cutscene
-        if (isCutsceneActive) {
-          requestAnimationFrame(gameLoop);
-          return;
-        }
+        if (isCutsceneActive) { requestAnimationFrame(gameLoop); return; }
 
         frameCount++;
+        ctx.save();
+        if (shakeTime > 0) {
+          ctx.translate((Math.random() - 0.5) * shakeTime, (Math.random() - 0.5) * shakeTime);
+          shakeTime--;
+        }
         ctx.clearRect(0, 0, gCanvas.width, gCanvas.height);
 
         const nodes = getNodes();
         const core = nodes.core;
 
-        // CHECK 50% HEALTH TRIGGER FOR HACKER HIJACK
+        // Cutscene at 50% HP
         if (coreHealth <= 50 && !cutsceneTriggered) {
           triggerHackerCutscene();
+          ctx.restore();
           requestAnimationFrame(gameLoop);
           return;
         }
 
-        // Auto Firewall Turret
-        if (autoFirewallTimer > 0) {
-          autoFirewallTimer--;
-          if (frameCount % 8 === 0 && packets.length > 0) {
-            const target = packets[0];
-            ctx.save();
-            ctx.strokeStyle = "#00f2fe";
-            ctx.lineWidth = 3;
-            ctx.shadowBlur = 15;
-            ctx.shadowColor = "#00f2fe";
-            ctx.beginPath();
-            ctx.moveTo(core.x, core.y);
-            ctx.lineTo(target.x, target.y);
-            ctx.stroke();
-            ctx.restore();
-
-            addExplosion(target.x, target.y, target.color, 12);
-            packets.splice(0, 1);
-            score++;
-            updateHUD();
-          }
+        // Spawn Boss at 15 points
+        if (score >= 15 && !bossSpawned) {
+          spawnBoss();
         }
 
-        // Network Mesh Lines
-        ctx.strokeStyle = "rgba(0, 242, 254, 0.15)";
+        // Network Lines & Subnodes
+        ctx.strokeStyle = "rgba(0, 242, 254, 0.16)";
         ctx.lineWidth = 1.5;
         nodes.subNodes.forEach((sn) => {
           ctx.beginPath();
@@ -415,123 +531,166 @@
           ctx.lineTo(sn.x, sn.y);
           ctx.stroke();
 
-          nodes.subNodes.forEach((sn2) => {
-            ctx.beginPath();
-            ctx.moveTo(sn.x, sn.y);
-            ctx.lineTo(sn2.x, sn2.y);
-            ctx.stroke();
-          });
-        });
-
-        // Sub Nodes
-        nodes.subNodes.forEach((sn) => {
           ctx.save();
           ctx.shadowBlur = 12;
           ctx.shadowColor = "#00f2fe";
           ctx.fillStyle = "rgba(10, 25, 45, 0.85)";
           ctx.strokeStyle = "#00f2fe";
-          ctx.lineWidth = 2;
           ctx.beginPath();
           ctx.arc(sn.x, sn.y, 22, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.stroke();
-
-          ctx.font = "bold 9px 'JetBrains Mono', monospace";
-          ctx.fillStyle = "#ffffff";
+          ctx.fill(); ctx.stroke();
+          ctx.font = "bold 9px 'JetBrains Mono'";
+          ctx.fillStyle = "#fff";
           ctx.textAlign = "center";
-          ctx.fillText(sn.label, sn.x, sn.y + 35);
+          ctx.fillText(sn.label, sn.x, sn.y + 36);
           ctx.restore();
         });
 
-        // Central Core
+        // Core Render
         ctx.save();
-        ctx.shadowBlur = autoFirewallTimer > 0 ? 35 : 20;
-        ctx.shadowColor = autoFirewallTimer > 0 ? "#00f2fe" : "#00ff66";
+        ctx.shadowBlur = 24;
+        ctx.shadowColor = "#00ff66";
         ctx.fillStyle = "rgba(4, 18, 12, 0.9)";
-        ctx.strokeStyle = autoFirewallTimer > 0 ? "#00f2fe" : "#00ff66";
+        ctx.strokeStyle = "#00ff66";
         ctx.lineWidth = 3;
         ctx.beginPath();
         ctx.arc(core.x, core.y, core.r, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.stroke();
-
-        ctx.font = "bold 11px 'JetBrains Mono', monospace";
+        ctx.fill(); ctx.stroke();
+        ctx.font = "bold 11px 'JetBrains Mono'";
         ctx.fillStyle = "#00ff66";
         ctx.textAlign = "center";
         ctx.fillText("PROD CORE", core.x, core.y - 6);
-        ctx.font = "bold 10px 'JetBrains Mono', monospace";
-        ctx.fillStyle = "#ffffff";
+        ctx.font = "bold 10px 'JetBrains Mono'";
+        ctx.fillStyle = "#fff";
         ctx.fillText(`${Math.max(0, Math.floor(coreHealth))}%`, core.x, core.y + 12);
         ctx.restore();
 
-        // Spawn Threats
-        if (frameCount % Math.max(16, spawnRate - Math.floor(score / 3)) === 0) {
-          spawnThreat();
-        }
+        // Spawn Infiltrators
+        if (frameCount % 45 === 0) spawnThreat();
 
-        // Threat Packets Loop
+        // Freeze handling
+        if (freezeTimer > 0) freezeTimer--;
+
+        // Update Threats
         for (let i = packets.length - 1; i >= 0; i--) {
           const p = packets[i];
-          p.x += p.vx;
-          p.y += p.vy;
+          if (freezeTimer <= 0) {
+            p.x += p.vx;
+            p.y += p.vy;
+          }
 
           ctx.save();
-          ctx.shadowBlur = 15;
-          ctx.shadowColor = p.color;
-          ctx.fillStyle = p.color;
+          ctx.shadowBlur = 14;
+          ctx.shadowColor = freezeTimer > 0 ? "#a5f3fc" : p.color;
+          ctx.fillStyle = freezeTimer > 0 ? "#a5f3fc" : p.color;
           ctx.beginPath();
           ctx.arc(p.x, p.y, 11, 0, Math.PI * 2);
           ctx.fill();
-
-          ctx.font = "8px 'JetBrains Mono', monospace";
-          ctx.fillStyle = "#ffffff";
+          ctx.font = "8px 'JetBrains Mono'";
+          ctx.fillStyle = "#fff";
           ctx.textAlign = "center";
           ctx.fillText(p.name, p.x, p.y - 14);
           ctx.restore();
 
           // Packet reaches core
-          const distToCore = Math.hypot(p.x - core.x, p.y - core.y);
-          if (distToCore < core.r + 5) {
+          if (Math.hypot(p.x - core.x, p.y - core.y) < core.r + 5) {
             coreHealth -= p.dmg;
-            addExplosion(p.x, p.y, p.color, 24);
+            addExplosion(p.x, p.y, p.color, 20);
             packets.splice(i, 1);
             updateHUD();
-
-            if (coreHealth <= 0) {
-              gameOver();
-              return;
-            }
+            if (coreHealth <= 0) { gameOver(false); ctx.restore(); return; }
           }
         }
 
-        // Shockwaves
+        // Titan Boss Loop
+        if (boss) {
+          boss.x += boss.vx;
+          if (boss.x < 100 || boss.x > gCanvas.width - 100) boss.vx *= -1;
+
+          // Boss shoots malware bullets
+          if (frameCount % 60 === 0) {
+            const angle = Math.atan2(core.y - boss.y, core.x - boss.x);
+            packets.push({
+              x: boss.x, y: boss.y + 30,
+              vx: Math.cos(angle) * 3, vy: Math.sin(angle) * 3,
+              name: "BOSS_WARP", color: "#ff0055", hp: 1, dmg: 10
+            });
+          }
+
+          // Draw Boss Skull Core
+          ctx.save();
+          ctx.shadowBlur = 35;
+          ctx.shadowColor = "#ff0055";
+          ctx.fillStyle = "rgba(25, 0, 10, 0.95)";
+          ctx.strokeStyle = "#ff0055";
+          ctx.lineWidth = 4;
+          ctx.beginPath();
+          ctx.arc(boss.x, boss.y, 50, 0, Math.PI * 2);
+          ctx.fill(); ctx.stroke();
+          ctx.font = "bold 13px 'JetBrains Mono'";
+          ctx.fillStyle = "#ff0055";
+          ctx.textAlign = "center";
+          ctx.fillText("SHADOW_ROOT", boss.x, boss.y + 5);
+          ctx.restore();
+
+          // Boss HUD Update
+          const hpPct = Math.max(0, Math.floor((boss.hp / boss.maxHp) * 100));
+          document.getElementById("bossHpVal").innerText = `${hpPct}%`;
+          document.getElementById("bossBarFill").style.width = `${hpPct}%`;
+
+          if (boss.hp <= 0) {
+            addExplosion(boss.x, boss.y, "#ff00ea", 60);
+            boss = null;
+            score += 50;
+            document.getElementById("bossHud").style.display = "none";
+            gameOver(true);
+            ctx.restore();
+            return;
+          }
+        }
+
+        // Railgun Beams
+        for (let i = railBeams.length - 1; i >= 0; i--) {
+          const b = railBeams[i];
+          b.alpha -= 0.08;
+          ctx.save();
+          ctx.strokeStyle = `rgba(0, 255, 102, ${b.alpha})`;
+          ctx.lineWidth = 7;
+          ctx.shadowBlur = 20;
+          ctx.shadowColor = "#00ff66";
+          ctx.beginPath();
+          ctx.moveTo(b.x1, b.y1);
+          ctx.lineTo(b.x2, b.y2);
+          ctx.stroke();
+          ctx.restore();
+          if (b.alpha <= 0) railBeams.splice(i, 1);
+        }
+
+        // Shockwaves & Particles
         for (let i = shockwaves.length - 1; i >= 0; i--) {
           const sw = shockwaves[i];
-          sw.r += 4;
-          sw.alpha -= 0.035;
+          sw.r += 5;
+          sw.alpha -= 0.04;
           ctx.save();
           ctx.strokeStyle = sw.color;
           ctx.globalAlpha = Math.max(0, sw.alpha);
-          ctx.lineWidth = 2.5;
+          ctx.lineWidth = 3;
           ctx.beginPath();
           ctx.arc(sw.x, sw.y, sw.r, 0, Math.PI * 2);
           ctx.stroke();
           ctx.restore();
-
           if (sw.alpha <= 0 || sw.r >= sw.maxR) shockwaves.splice(i, 1);
         }
 
-        // Particles
         for (let i = particles.length - 1; i >= 0; i--) {
           const pt = particles[i];
-          pt.x += pt.vx;
-          pt.y += pt.vy;
-          pt.life--;
+          pt.x += pt.vx; pt.y += pt.vy; pt.life--;
           ctx.fillStyle = pt.color;
           ctx.fillRect(pt.x, pt.y, 3, 3);
           if (pt.life <= 0) particles.splice(i, 1);
         }
 
+        ctx.restore();
         requestAnimationFrame(gameLoop);
       }
     </script>
