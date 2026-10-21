@@ -1,9 +1,9 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Ganapathi | Black Hole Mode</title>
+    <title>Ganapathi | Production Operations Hub</title>
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
@@ -11,56 +11,93 @@
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
+    <!-- Background Sci-Fi Matrix & Orb -->
+    <div class="grid-overlay"></div>
     <div class="black-hole-bg"></div>
-    <div class="ring"></div>
+    <div class="ring outer-ring"></div>
+    <div class="ring inner-ring"></div>
 
     <div class="dashboard">
+      <!-- Status Badge -->
+      <div class="badge-status">
+        <span class="live-dot"></span>
+        <span>CI/CD PIPELINE • PRODUCTION ACTIVE</span>
+      </div>
+
+      <!-- Header Branding -->
       <div class="header">
         <h1 class="branding-name">GANAPATHI</h1>
-        <p
-          style="
-            color: rgba(255, 255, 255, 0.4);
-            font-size: 0.6rem;
-            letter-spacing: 8px;
-            margin-top: 20px;
-          "
-        >
-          VOID ARCHITECTURE // ZERO GRAVITY CI/CD
-        </p>
+        <p class="tagline">SRE & AUTOMATION CONTROL MATRIX // BUILD v2.4</p>
       </div>
 
+      <!-- Stage Pipeline Flow -->
       <div class="pipeline-status">
-        <div class="node active">
-          <i class="fas fa-atom"></i>
+        <div class="node active" data-step="SOURCE">
+          <i class="fas fa-code-commit"></i>
+          <span class="node-label">GIT SYNC</span>
         </div>
-        <div class="node active">
-          <i class="fas fa-dna"></i>
-        </div>
-        <div class="node active">
+        <div class="node-connector active"></div>
+
+        <div class="node active" data-step="BUILD">
           <i class="fas fa-microchip"></i>
+          <span class="node-label">BUILD</span>
         </div>
-        <div class="node">
-          <i class="fas fa-infinity"></i>
+        <div class="node-connector active"></div>
+
+        <div class="node active" data-step="SECURITY">
+          <i class="fas fa-shield-halved"></i>
+          <span class="node-label">SECURITY</span>
+        </div>
+        <div class="node-connector active pulse"></div>
+
+        <div class="node active deploy" data-step="PROD">
+          <i class="fas fa-cloud-arrow-up"></i>
+          <span class="node-label">DEPLOY</span>
         </div>
       </div>
 
+      <!-- Live Terminal Console -->
       <div class="terminal-void">
-        <p id="voidLog">Pulling artifact into event horizon...</p>
+        <div class="terminal-bar">
+          <span class="dot red"></span>
+          <span class="dot yellow"></span>
+          <span class="dot green"></span>
+          <span class="terminal-title">live-telemetry.sh</span>
+        </div>
+        <div class="terminal-body" id="voidLog">
+          <p class="log-line success">> [SYS_INIT] Webhook received from branch: <strong>main</strong></p>
+          <p class="log-line info">> [STATUS] All health probes passing. Cluster sync 100%.</p>
+        </div>
       </div>
 
-      <div class="footer" style="margin-top: 50px">
-        <button class="btn-singularity" onclick="spaghettify()">
-          COLLAPSE DATA
+      <!-- Action Trigger -->
+      <div class="footer">
+        <button class="btn-singularity" onclick="runTelemetryCheck()">
+          <i class="fas fa-bolt"></i> RUN TELEMETRY CHECK
         </button>
       </div>
     </div>
 
     <script>
-      function spaghettify() {
-        const node = document.querySelector(".terminal-void p");
-        node.innerText = "DATA COMPRESSED TO INFINITE DENSITY.";
-        node.style.color = "white";
-        node.style.textShadow = "0 0 20px white";
+      function runTelemetryCheck() {
+        const logBox = document.getElementById("voidLog");
+        const time = new Date().toLocaleTimeString();
+        const latency = Math.floor(Math.random() * 8) + 10;
+
+        logBox.innerHTML = `
+          <p class="log-line success">> [${time}] TELEMETRY AUDIT COMPLETE</p>
+          <p class="log-line info">> Cluster Latency: <strong>${latency}ms</strong> (Optimal)</p>
+          <p class="log-line info">> Deployment Health: <strong>Zero Downtime Verified</strong></p>
+          <p class="log-line success">> All Nodes Synced across AWS Edge Regions.</p>
+        `;
+
+        const btn = document.querySelector(".btn-singularity");
+        btn.innerHTML = `<i class="fas fa-check"></i> TELEMETRY VERIFIED`;
+        btn.classList.add("verified");
+        setTimeout(() => {
+          btn.innerHTML = `<i class="fas fa-bolt"></i> RUN TELEMETRY CHECK`;
+          btn.classList.remove("verified");
+        }, 3000);
       }
     </script>
   </body>
