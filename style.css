@@ -16,7 +16,7 @@ body {
 }
 
 header {
-  background-color: #24292e;
+  background-color: #1f5b48;
   color: #fff;
   padding: 1.5rem 1rem;
   text-align: center;
@@ -28,6 +28,13 @@ main {
   max-width: 800px;
   margin: 0 auto;
   width: 100%;
+}
+
+main p {
+  padding: 1.25rem;
+  border-left: 4px solid #e47c4c;
+  border-radius: 4px;
+  background-color: #fff;
 }
 
 footer {
